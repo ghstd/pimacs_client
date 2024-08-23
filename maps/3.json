@@ -97,6 +97,11 @@
                  "name":"transition",
                  "properties":[
                         {
+                         "name":"destination",
+                         "type":"string",
+                         "value":"x:608,y:576,width:96,height:32"
+                        }, 
+                        {
                          "name":"to",
                          "type":"string",
                          "value":"4"
@@ -107,6 +112,17 @@
                  "width":96,
                  "x":160,
                  "y":0
+                }, 
+                {
+                 "height":32,
+                 "id":2,
+                 "name":"destination",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":96,
+                 "x":160,
+                 "y":32
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -115,7 +131,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":2,
+ "nextobjectid":3,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",
@@ -124,7 +140,7 @@
         {
          "columns":8,
          "firstgid":1,
-         "image":"assets\/base.png",
+         "image":"..\/assets\/base.png",
          "imageheight":4000,
          "imagewidth":256,
          "margin":0,
@@ -10393,7 +10409,7 @@
         {
          "columns":64,
          "firstgid":1001,
-         "image":"assets\/water.png",
+         "image":"..\/assets\/water.png",
          "imageheight":1536,
          "imagewidth":2048,
          "margin":0,

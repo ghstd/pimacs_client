@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="25" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="3">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="25" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="4">
  <editorsettings>
   <export target="4.json" format="json"/>
  </editorsettings>
- <tileset firstgid="1" source="assets/base_set.tsx"/>
+ <tileset firstgid="1" source="../assets/base_set.tsx"/>
  <layer id="1" name="Слой тайлов 1" width="25" height="20">
   <data encoding="csv">
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -79,8 +79,10 @@
  <objectgroup id="4" name="Transition">
   <object id="1" name="transition" x="608" y="639" width="96" height="1">
    <properties>
+    <property name="destination" value="x:160,y:32,width:96,height:32"/>
     <property name="to" value="3"/>
    </properties>
   </object>
+  <object id="3" name="destination" x="608" y="576" width="96" height="32"/>
  </objectgroup>
 </map>

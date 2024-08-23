@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="15" height="10" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="2">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="15" height="10" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="3">
  <editorsettings>
   <export target="3.json" format="json"/>
  </editorsettings>
- <tileset firstgid="1" source="assets/base_set.tsx"/>
- <tileset firstgid="1001" source="assets/water_set.tsx"/>
+ <tileset firstgid="1" source="../assets/base_set.tsx"/>
+ <tileset firstgid="1001" source="../assets/water_set.tsx"/>
  <layer id="3" name="Слой тайлов 1" width="15" height="10">
   <data encoding="csv">
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -64,8 +64,10 @@
  <objectgroup id="7" name="Transition">
   <object id="1" name="transition" x="160" y="0" width="96" height="1">
    <properties>
+    <property name="destination" value="x:608,y:576,width:96,height:32"/>
     <property name="to" value="4"/>
    </properties>
   </object>
+  <object id="2" name="destination" x="160" y="32" width="96" height="32"/>
  </objectgroup>
 </map>
