@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="25" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="4">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="25" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="6">
  <editorsettings>
   <export target="4.json" format="json"/>
  </editorsettings>
@@ -83,6 +83,11 @@
     <property name="to" value="3"/>
    </properties>
   </object>
-  <object id="3" name="destination" x="608" y="576" width="96" height="32"/>
+  <object id="4" name="transition" x="0" y="224" width="1" height="96">
+   <properties>
+    <property name="destination" value="x:416,y:128,width:32,height:64"/>
+    <property name="to" value="5"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

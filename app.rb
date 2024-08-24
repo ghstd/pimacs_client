@@ -8,6 +8,7 @@ require_relative 'classes/map_loader'
 require_relative 'classes/interface'
 require_relative 'classes/pointer'
 require_relative 'classes/player'
+require_relative 'classes/monster'
 
 class GameWindow < Gosu::Window
   # Константы для размеров окна и тайлов
@@ -27,10 +28,17 @@ class GameWindow < Gosu::Window
     super(WINDOW_WIDTH + INTERFACE_SIZE_WIDTH, WINDOW_HEIGHT + INTERFACE_SIZE_HEIGHT)
     self.caption = "Tiled Map Test"
 
-    @player = Player.new(tile_size: TILE_SIZE)
+    @map_loader = MapLoader.new(maps_pathes: ['maps/3.json', 'maps/4.json', 'maps/5.json'])
+    load_map('4')
 
-    @map_loader = MapLoader.new(maps_pathes: ['maps/3.json', 'maps/4.json'])
-    load_map('3')
+    @player = Player.new(
+      tile_size: TILE_SIZE,
+      all_tiles_info: @map_loader.all_tiles_info,
+      map_width: @map_loader.map_width,
+      map_height: @map_loader.map_height,
+      map_loader: @map_loader
+    )
+    @map_loader.players.add(@player)
 
     @interface = Interface.new(
       window_width: WINDOW_WIDTH,
@@ -60,13 +68,30 @@ class GameWindow < Gosu::Window
 
   def load_map(map_name)
     @map_loader.load_map(map_name)
-    @player.stop_moving
-    # Установка камеры на игроке при загрузке карты
-    update_camera_position(@map_loader.map_width, @map_loader.map_height) unless @first_frame
+    @player && @player.stop_moving
+    @player && @player.all_tiles_info = @map_loader.all_tiles_info
+    @player && @player.map_width = @map_loader.map_width
+    @player && @player.map_height = @map_loader.map_height
+    @player && @player.map_loader = @map_loader
+
+    '=========================='
+    @monsters = []
+
+    if map_name == '5'
+      3.times do
+        monster = Monster.new(
+          tile_size: TILE_SIZE,
+          map_width: @map_loader.map_width,
+          map_height: @map_loader.map_height,
+          all_tiles_info: @map_loader.all_tiles_info
+        )
+        @map_loader.monsters.add(monster)
+        @monsters << monster
+      end
+    end
   end
 
   def update_camera_position(map_width, map_height)
-    # Логика определения позиции камеры
     camera_x = [@player.player_x - HALF_WINDOW_WIDTH, 0].max
     camera_y = [@player.player_y - HALF_WINDOW_HEIGHT, 0].max
 
@@ -125,7 +150,14 @@ class GameWindow < Gosu::Window
 
     elsif id == Gosu::MS_RIGHT # MS_RIGHT
 
-      @player.player_target = [target_tile_x, target_tile_y]
+      monster = @monsters.find do |monster|
+        ((monster.monster_x / TILE_SIZE).to_i == target_tile_x) && ((monster.monster_y / TILE_SIZE).to_i == target_tile_y)
+      end
+      if monster
+        @player.player_target = monster
+      else
+        @player.player_target = [target_tile_x, target_tile_y]
+      end
 
     elsif id == Gosu::KB_ESCAPE # KB_ESCAPE
 
@@ -146,10 +178,19 @@ class GameWindow < Gosu::Window
       if @player.player_in_area?(area)
         @player.player_target = nil
         @player.player_x = area[:destination_data][:x] + rand(0..(area[:destination_data][:width] / TILE_SIZE - 1)) * TILE_SIZE
-        @player.player_y = area[:destination_data][:y]
+        @player.player_y = area[:destination_data][:y] + rand(0..(area[:destination_data][:height] / TILE_SIZE - 1)) * TILE_SIZE
         load_map(area[:destination])
         break
       end
+    end
+
+    # '========================='
+    if !@monsters.empty?
+      to_delete = []
+      @monsters.each do |monster|
+        monster.xp <= 0 ? to_delete << monster : monster.update
+      end
+      to_delete.each {|monster| @monsters.delete(monster)}
     end
   end
 
@@ -176,11 +217,20 @@ class GameWindow < Gosu::Window
         @pointer.draw_pointer_click
 
         @player.draw
+
+        # '========================='
+        if !@monsters.empty?
+          @monsters.each {|monster| monster.draw}
+        end
       end
     end
 
     # Отрисовка интерфейса
     @interface.draw_interface
+
+    # '========================='
+    @player.draw_target_xp_bar
+    @player.draw_xp_mp_bars
   end
 
 end

@@ -68,6 +68,5 @@
     <property name="to" value="4"/>
    </properties>
   </object>
-  <object id="2" name="destination" x="160" y="32" width="96" height="32"/>
  </objectgroup>
 </map>

@@ -1,8 +1,8 @@
 require_relative 'projectile'
 
 class Player
-  attr_accessor :player_x, :player_y, :player_spelling, :player_target
-  def initialize(tile_size: 32)
+  attr_accessor :player_x, :player_y, :player_spelling, :player_target, :all_tiles_info, :map_width, :map_height, :map_loader, :xp, :mp
+  def initialize(tile_size: 32, all_tiles_info:, map_width:, map_height:, map_loader:)
     @tile_size = tile_size
     @half_tile_size = tile_size / 2
 
@@ -36,6 +36,14 @@ class Player
     @moving = false
     @new_path = false
     @next_step = false
+
+    @all_tiles_info = all_tiles_info
+    @map_width = map_width
+    @map_height = map_height
+    @map_loader = map_loader
+
+    @xp = 100
+    @mp = 100
   end
 
   def start_moving(path)
@@ -174,18 +182,32 @@ class Player
 
   def create_projectile(pointer_x, pointer_y, camera_position_x, camera_position_y)
     if @player_target
-      target_tile_x, target_tile_y = @player_target
+      if @player_target.is_a? Array
+        target_tile_x, target_tile_y = @player_target
+        target_x = target_tile_x * @tile_size + @half_tile_size
+        target_y = target_tile_y * @tile_size + @half_tile_size
+      else
+        target_tile_x = (@player_target.monster_x / @tile_size).to_i
+        target_tile_y = (@player_target.monster_y / @tile_size).to_i
+
+        target_x = @player_target.monster_x + @half_tile_size
+        target_y = @player_target.monster_y + @half_tile_size
+      end
     else
       target_tile_x = ((pointer_x + camera_position_x) / @tile_size).to_i
       target_tile_y = ((pointer_y + camera_position_y) / @tile_size).to_i
+      target_x = target_tile_x * @tile_size + @half_tile_size
+      target_y = target_tile_y * @tile_size + @half_tile_size
     end
+
+    return if (@player_x == target_tile_x * @tile_size) && (@player_y == target_tile_y * @tile_size)
 
     projectile = Projectile.new(
       start_x: @player_x + @half_tile_size,
       start_y: @player_y + @half_tile_size,
-      target_x: target_tile_x * @tile_size + @half_tile_size,
-      target_y: target_tile_y * @tile_size + @half_tile_size,
-      speed: 3
+      target_x: target_x,
+      target_y: target_y,
+      speed: 5
     )
     @projectiles << projectile
   end
@@ -193,9 +215,14 @@ class Player
   def draw_player_target
     return unless @player_target
 
-    target_tile_x, target_tile_y = @player_target
-    target_x = target_tile_x * @tile_size
-    target_y = target_tile_y * @tile_size
+    if @player_target.is_a? Array
+      target_tile_x, target_tile_y = @player_target
+      target_x = target_tile_x * @tile_size
+      target_y = target_tile_y * @tile_size
+    else
+      target_x = @player_target.monster_x
+      target_y = @player_target.monster_y
+    end
 
     p1_x = target_x
     p1_y = target_y
@@ -217,10 +244,54 @@ class Player
     Gosu.draw_line(p4_x, p4_y, color, p1_x, p1_y, color)
   end
 
+  def draw_target_xp_bar
+    return unless @player_target
+    return unless !@player_target.is_a? Array
+
+    Gosu.draw_rect(200, 20, @player_target.xp, 10, Gosu::Color::RED, 3)
+  end
+
+  def draw_xp_mp_bars
+    Gosu.draw_rect(30, 60, 20, @xp * 2, Gosu::Color::RED, 3)
+    Gosu.draw_rect(60, 60, 20, @xp * 2, Gosu::Color.new(255, 19, 103, 138), 3)
+  end
+
   def update_projectiles
     @projectiles.each do |projectile|
       projectile.update
+
+      # colliding with map
+      current_tile_x = (projectile.x / @tile_size).to_i
+      current_tile_y = (projectile.y / @tile_size).to_i
+
+      tile_index = current_tile_x + current_tile_y * @map_width
+
+      tiles = @all_tiles_info[tile_index]
+      tiles_collides = tiles.map do |tile|
+        tile['properties'].filter {|prop| prop['name'] == 'collides'}.map {|prop| prop['value']}
+      end
+      collides = tiles_collides.flatten.include?(true)
+
+      if collides
+        @projectiles.delete(projectile)
+        next
+      end
+
+      # colliding with monsters
+      monster = @map_loader.monsters.find do |monster|
+        ((monster.monster_x / @tile_size).to_i == current_tile_x) && ((monster.monster_y / @tile_size).to_i == current_tile_y)
+      end
+
+      if monster
+        monster.xp -= 10
+        @projectiles.delete(projectile)
+        if monster.xp <= 0
+          @map_loader.monsters.delete(monster)
+        end
+        next
+      end
     end
+
     @projectiles.reject! { |projectile| projectile.reached_target? }
   end
 
