@@ -1,8 +1,9 @@
 require_relative 'projectile'
 
-class Player
+class Player < LiveCreature
   attr_accessor :player_x, :player_y, :player_spelling, :player_target, :all_tiles_info, :map_width, :map_height, :map_loader, :xp, :mp
   def initialize(tile_size: 32, all_tiles_info:, map_width:, map_height:, map_loader:)
+    super()
     @tile_size = tile_size
     @half_tile_size = tile_size / 2
 
@@ -30,12 +31,12 @@ class Player
     @projectiles = []
     @player_target = nil
 
-    @path = []
-    @target_x = nil
-    @target_y = nil
-    @moving = false
-    @new_path = false
-    @next_step = false
+    # @path = []
+    # @target_x = nil
+    # @target_y = nil
+    # @moving = false
+    # @new_path = false
+    # @next_step = false
 
     @all_tiles_info = all_tiles_info
     @map_width = map_width
@@ -46,93 +47,93 @@ class Player
     @mp = 100
   end
 
-  def start_moving(path)
-    if path
-      @path = path
-      if @moving
-        @new_path = true
-      else
-        start_path
-      end
-    end
-  end
+  # def start_moving(path)
+  #   if path
+  #     @path = path
+  #     if @moving
+  #       @new_path = true
+  #     else
+  #       start_path
+  #     end
+  #   end
+  # end
 
-  def stop_moving
-    @moving = false
-  end
+  # def stop_moving
+  #   @moving = false
+  # end
 
-  def start_path
-    @path.shift # remove start tile
-    return if @path.empty?
-    next_tile = @path.shift
-    @target_x = next_tile[0] * @tile_size
-    @target_y = next_tile[1] * @tile_size
-    @moving = true
-    @new_path = false
-  end
+  # def start_path
+  #   @path.shift # remove start tile
+  #   return if @path.empty?
+  #   next_tile = @path.shift
+  #   @target_x = next_tile[0] * @tile_size
+  #   @target_y = next_tile[1] * @tile_size
+  #   @moving = true
+  #   @new_path = false
+  # end
 
-  def move_player_with_mouse(map_width, map_height)
-    return unless @moving
+  # def move_player_with_mouse(map_width, map_height)
+  #   return unless @moving
 
-    if @new_path
-      move_to_nearest_tile
-      return unless @player_x % @tile_size == 0 && @player_y % @tile_size == 0
-      start_path
-    else
-      if @next_step
-        next_tile = @path.shift
-        if next_tile
-          @target_x = next_tile[0] * @tile_size
-          @target_y = next_tile[1] * @tile_size
-        end
-        @next_step = false
-      end
-    end
+  #   if @new_path
+  #     move_to_nearest_tile
+  #     return unless @player_x % @tile_size == 0 && @player_y % @tile_size == 0
+  #     start_path
+  #   else
+  #     if @next_step
+  #       next_tile = @path.shift
+  #       if next_tile
+  #         @target_x = next_tile[0] * @tile_size
+  #         @target_y = next_tile[1] * @tile_size
+  #       end
+  #       @next_step = false
+  #     end
+  #   end
 
-    # Определяем направление к цели
-    dx = @target_x - @player_x
-    dy = @target_y - @player_y
-    distance = Math.sqrt(dx**2 + dy**2)
+  #   # Определяем направление к цели
+  #   dx = @target_x - @player_x
+  #   dy = @target_y - @player_y
+  #   distance = Math.sqrt(dx**2 + dy**2)
 
-    # Если цель достигнута
-    if distance < @player_speed
-      @player_x = @target_x
-      @player_y = @target_y
+  #   # Если цель достигнута
+  #   if distance < @player_speed
+  #     @player_x = @target_x
+  #     @player_y = @target_y
 
-      if @path.empty?
-        @moving = false
-        @next_step = false
-      else
-        @next_step = true
-      end
-    else
-      # Двигаем игрока в сторону цели
-      dx /= distance
-      dy /= distance
-      @player_x += (dx * @player_speed).to_i
-      @player_y += (dy * @player_speed).to_i
-    end
+  #     if @path.empty?
+  #       @moving = false
+  #       @next_step = false
+  #     else
+  #       @next_step = true
+  #     end
+  #   else
+  #     # Двигаем игрока в сторону цели
+  #     dx /= distance
+  #     dy /= distance
+  #     @player_x += (dx * @player_speed).to_i
+  #     @player_y += (dy * @player_speed).to_i
+  #   end
 
-    # Ограничиваем движение игрока рамками карты
-    @player_x = [[@player_x, 0].max, map_width * @tile_size - @player_width].min
-    @player_y = [[@player_y, 0].max, map_height * @tile_size - @player_height].min
-  end
+  #   # Ограничиваем движение игрока рамками карты
+  #   @player_x = [[@player_x, 0].max, map_width * @tile_size - @player_width].min
+  #   @player_y = [[@player_y, 0].max, map_height * @tile_size - @player_height].min
+  # end
 
-  def move_to_nearest_tile
-    dx = @target_x - @player_x
-    dy = @target_y - @player_y
-    distance = Math.sqrt(dx**2 + dy**2)
+  # def move_to_nearest_tile
+  #   dx = @target_x - @player_x
+  #   dy = @target_y - @player_y
+  #   distance = Math.sqrt(dx**2 + dy**2)
 
-    if distance < @player_speed
-      @player_x = @target_x
-      @player_y = @target_y
-    else
-      dx /= distance
-      dy /= distance
-      @player_x += (dx * @player_speed).to_i
-      @player_y += (dy * @player_speed).to_i
-    end
-  end
+  #   if distance < @player_speed
+  #     @player_x = @target_x
+  #     @player_y = @target_y
+  #   else
+  #     dx /= distance
+  #     dy /= distance
+  #     @player_x += (dx * @player_speed).to_i
+  #     @player_y += (dy * @player_speed).to_i
+  #   end
+  # end
 
   def player_in_area?(area)
     @player_x < area[:x] + area[:width] &&
@@ -301,13 +302,15 @@ class Player
     end
   end
 
-  def update
+  def update(map_width, map_height)
+    super(map_width, map_height)
     update_player_image
     update_projectiles
   end
 
   def draw
-    @player_image.draw(@player_x, @player_y, 1)
+    @player_image.draw(@x, @y, 1)
+    # @player_image.draw(@player_x, @player_y, 1)
     draw_player_target
     draw_projectiles
   end

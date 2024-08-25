@@ -4,13 +4,15 @@ require 'set'
 
 require_relative 'modules/dev_instruments'
 require_relative 'modules/pathfinder'
+require_relative 'modules/pixels_converter'
 require_relative 'classes/map_loader'
 require_relative 'classes/interface'
 require_relative 'classes/pointer'
+require_relative 'classes/live_creature'
 require_relative 'classes/player'
 require_relative 'classes/monster'
 
-class GameWindow < Gosu::Window
+class App < Gosu::Window
   # Константы для размеров окна и тайлов
   WINDOW_WIDTH = 640
   WINDOW_HEIGHT = 480
@@ -125,20 +127,21 @@ class GameWindow < Gosu::Window
 
     if id == Gosu::MS_LEFT # MS_LEFT
 
-      start_tile_x = (@player.player_x / TILE_SIZE).to_i
-      start_tile_y = (@player.player_y / TILE_SIZE).to_i
+      # start_tile_x = (@player.player_x / TILE_SIZE).to_i
+      # start_tile_y = (@player.player_y / TILE_SIZE).to_i
 
-      path = Pathfinder.find_path(
-        start_x: start_tile_x,
-        start_y: start_tile_y,
-        goal_x: target_tile_x,
-        goal_y: target_tile_y,
-        map_width: @map_loader.map_width,
-        map_height: @map_loader.map_height,
-        all_tiles_info: @map_loader.all_tiles_info
-      )
+      # path = Pathfinder.find_path(
+      #   start_x: start_tile_x,
+      #   start_y: start_tile_y,
+      #   goal_x: target_tile_x,
+      #   goal_y: target_tile_y,
+      #   map_width: @map_loader.map_width,
+      #   map_height: @map_loader.map_height,
+      #   all_tiles_info: @map_loader.all_tiles_info
+      # )
 
-      @player.start_moving(path)
+      @player.start_moving(target_tile_x, target_tile_y, @map_loader.map_width, @map_loader.map_height)
+      # @player.start_moving(path)
       @player.set_sprite_direction(target_x, target_y)
 
       @pointer.init_click_animation(target_x, target_y, TILE_SIZE)
@@ -170,8 +173,9 @@ class GameWindow < Gosu::Window
     # Сброс флага после первого кадра
     @first_frame = false if @first_frame
 
-    @player.update
-    @player.move_player_with_mouse(@map_loader.map_width, @map_loader.map_height)
+    @player.update(@map_loader.map_width, @map_loader.map_height)
+    # @player.update
+    # @player.move_player_with_mouse(@map_loader.map_width, @map_loader.map_height)
     update_camera_position(@map_loader.map_width, @map_loader.map_height) unless @first_frame
 
     @map_loader.transition_areas.each do |area|
@@ -235,5 +239,5 @@ class GameWindow < Gosu::Window
 
 end
 
-window = GameWindow.new
-window.show
+app = App.new
+app.show
