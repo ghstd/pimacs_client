@@ -102,7 +102,7 @@
                          "value":"x:608,y:576,width:96,height:32"
                         }, 
                         {
-                         "name":"to",
+                         "name":"to_map",
                          "type":"string",
                          "value":"4"
                         }],
@@ -120,7 +120,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":3,
+ "nextobjectid":4,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",

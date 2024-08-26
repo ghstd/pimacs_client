@@ -1,5 +1,7 @@
 class Pointer
   def initialize(correction_x: 0, correction_y: 0, window:)
+    @tile_size = $TILE_SIZE
+
     @correction_x = correction_x
     @correction_y = correction_y
     @window = window
@@ -15,13 +17,13 @@ class Pointer
     return @window.mouse_x, @window.mouse_y
   end
 
-  def draw_pointer_rect(camera_position_x, camera_position_y, tile_size)
+  def draw_pointer_rect(camera_position_x, camera_position_y)
     x, y = current_position
 
-    target_x = ((x + camera_position_x) / tile_size).to_i * tile_size + 1
-    target_y = ((y + camera_position_y) / tile_size).to_i * tile_size + 1
+    target_x = ((x + camera_position_x) / @tile_size).to_i * @tile_size + 1
+    target_y = ((y + camera_position_y) / @tile_size).to_i * @tile_size + 1
 
-    size = tile_size - 2
+    size = @tile_size - 2
 
     p1_x = target_x
     p1_y = target_y
@@ -43,12 +45,12 @@ class Pointer
     Gosu.draw_line(p4_x, p4_y, color, p1_x, p1_y, color)
   end
 
-  def init_click_animation(target_x, target_y, tile_size)
+  def init_click_animation(target_x, target_y)
     3.times do |i|
       @pointer_click_animations << {
         x: target_x + (i * 2 + 6),
         y: target_y + (i * 2 + 6),
-        size: tile_size - (i * 2 + 6) * 2,
+        size: @tile_size - (i * 2 + 6) * 2,
         color: Gosu::Color::WHITE
       }
     end

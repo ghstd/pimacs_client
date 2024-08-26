@@ -1,24 +1,28 @@
 require 'gosu'
 require 'json'
 require 'set'
+require 'singleton'
 
-require_relative 'modules/dev_instruments'
-require_relative 'modules/pathfinder'
-require_relative 'modules/pixels_converter'
-require_relative 'classes/map_loader'
+$TILE_SIZE = 32
+
+require_relative 'classes/world'
+require_relative 'classes/map'
 require_relative 'classes/interface'
 require_relative 'classes/pointer'
-require_relative 'classes/live_creature'
+require_relative 'classes/basic_abilities/index'
 require_relative 'classes/player'
 require_relative 'classes/monster'
+require_relative 'classes/projectile'
+require_relative 'modules/pathfinder'
+require_relative 'modules/pixels_converter'
+require_relative 'modules/dev_instruments'
 
 class App < Gosu::Window
-  # Константы для размеров окна и тайлов
   WINDOW_WIDTH = 640
   WINDOW_HEIGHT = 480
   HALF_WINDOW_WIDTH = WINDOW_WIDTH / 2
   HALF_WINDOW_HEIGHT = WINDOW_HEIGHT / 2
-  TILE_SIZE = 32
+  TILE_SIZE = $TILE_SIZE
   HALF_TILE_SIZE = TILE_SIZE / 2
   INTERFACE_SIZE_WIDTH = 220
   INTERFACE_SIZE_HEIGHT = 120
@@ -30,17 +34,11 @@ class App < Gosu::Window
     super(WINDOW_WIDTH + INTERFACE_SIZE_WIDTH, WINDOW_HEIGHT + INTERFACE_SIZE_HEIGHT)
     self.caption = "Tiled Map Test"
 
-    @map_loader = MapLoader.new(maps_pathes: ['maps/3.json', 'maps/4.json', 'maps/5.json'])
-    load_map('4')
+    @world = World.instance
 
-    @player = Player.new(
-      tile_size: TILE_SIZE,
-      all_tiles_info: @map_loader.all_tiles_info,
-      map_width: @map_loader.map_width,
-      map_height: @map_loader.map_height,
-      map_loader: @map_loader
-    )
-    @map_loader.players.add(@player)
+    @player = Player.new(160, 160)
+
+    @world.current_map.players.add(@player)
 
     @interface = Interface.new(
       window_width: WINDOW_WIDTH,
@@ -56,46 +54,18 @@ class App < Gosu::Window
       window: self
     )
 
-    # Загружаем изображения тайлов
-    @tileset_image_base = Gosu::Image.new('assets/base.png')
-    @tileset_image_water = Gosu::Image.new('assets/water.png')
-    # Создаем массив для хранения картинок каждого тайла
-    @tiles_base = Gosu::Image.load_tiles(@tileset_image_base, TILE_SIZE, TILE_SIZE)
-    @tiles_water = Gosu::Image.load_tiles(@tileset_image_water, TILE_SIZE, TILE_SIZE)
-    @tiles = @tiles_base + @tiles_water
-
     # Флаг для проверки первого кадра
     @first_frame = true
   end
 
-  def load_map(map_name)
-    @map_loader.load_map(map_name)
-    @player && @player.stop_moving
-    @player && @player.all_tiles_info = @map_loader.all_tiles_info
-    @player && @player.map_width = @map_loader.map_width
-    @player && @player.map_height = @map_loader.map_height
-    @player && @player.map_loader = @map_loader
-
-    '=========================='
-    @monsters = []
-
-    if map_name == '5'
-      3.times do
-        monster = Monster.new(
-          tile_size: TILE_SIZE,
-          map_width: @map_loader.map_width,
-          map_height: @map_loader.map_height,
-          all_tiles_info: @map_loader.all_tiles_info
-        )
-        @map_loader.monsters.add(monster)
-        @monsters << monster
-      end
-    end
+  def change_map(map_name)
+    @world.change_map(map_name)
+    @player.moving_component.stop_moving
   end
 
   def update_camera_position(map_width, map_height)
-    camera_x = [@player.player_x - HALF_WINDOW_WIDTH, 0].max
-    camera_y = [@player.player_y - HALF_WINDOW_HEIGHT, 0].max
+    camera_x = [@player.moving_component.x - HALF_WINDOW_WIDTH, 0].max
+    camera_y = [@player.moving_component.y - HALF_WINDOW_HEIGHT, 0].max
 
     map_width_px = map_width * TILE_SIZE
     map_height_px = map_height * TILE_SIZE
@@ -117,7 +87,7 @@ class App < Gosu::Window
 
   def button_down(id)
     x, y = @pointer.current_position
-    camera_position_x, camera_position_y = update_camera_position(@map_loader.map_width, @map_loader.map_height)
+    camera_position_x, camera_position_y = update_camera_position(@world.current_map.width, @world.current_map.height)
 
     target_x = ((x + camera_position_x) / TILE_SIZE).to_i * TILE_SIZE
     target_y = ((y + camera_position_y) / TILE_SIZE).to_i * TILE_SIZE
@@ -127,28 +97,14 @@ class App < Gosu::Window
 
     if id == Gosu::MS_LEFT # MS_LEFT
 
-      # start_tile_x = (@player.player_x / TILE_SIZE).to_i
-      # start_tile_y = (@player.player_y / TILE_SIZE).to_i
+      @player.moving_component.start_moving(target_tile_x, target_tile_y,)
+      @player.animating_component.set_sprite_direction(target_x)
 
-      # path = Pathfinder.find_path(
-      #   start_x: start_tile_x,
-      #   start_y: start_tile_y,
-      #   goal_x: target_tile_x,
-      #   goal_y: target_tile_y,
-      #   map_width: @map_loader.map_width,
-      #   map_height: @map_loader.map_height,
-      #   all_tiles_info: @map_loader.all_tiles_info
-      # )
-
-      @player.start_moving(target_tile_x, target_tile_y, @map_loader.map_width, @map_loader.map_height)
-      # @player.start_moving(path)
-      @player.set_sprite_direction(target_x, target_y)
-
-      @pointer.init_click_animation(target_x, target_y, TILE_SIZE)
+      @pointer.init_click_animation(target_x, target_y)
 
     elsif id == Gosu::KB_Q # KB_Q
 
-      @player.player_spelling = true
+      @player.animating_component.spelling = true
       @player.create_projectile(x, y,camera_position_x, camera_position_y)
 
     elsif id == Gosu::MS_RIGHT # MS_RIGHT
@@ -173,58 +129,49 @@ class App < Gosu::Window
     # Сброс флага после первого кадра
     @first_frame = false if @first_frame
 
-    @player.update(@map_loader.map_width, @map_loader.map_height)
-    # @player.update
-    # @player.move_player_with_mouse(@map_loader.map_width, @map_loader.map_height)
-    update_camera_position(@map_loader.map_width, @map_loader.map_height) unless @first_frame
+    @player.update
+    update_camera_position(@world.current_map.width, @world.current_map.height) unless @first_frame
 
-    @map_loader.transition_areas.each do |area|
+    @world.current_map.transition_areas.each do |area|
       if @player.player_in_area?(area)
+
         @player.player_target = nil
-        @player.player_x = area[:destination_data][:x] + rand(0..(area[:destination_data][:width] / TILE_SIZE - 1)) * TILE_SIZE
-        @player.player_y = area[:destination_data][:y] + rand(0..(area[:destination_data][:height] / TILE_SIZE - 1)) * TILE_SIZE
-        load_map(area[:destination])
+        @player.moving_component.x = area[:destination][:x] + rand(0..(area[:destination][:width] / TILE_SIZE - 1)) * TILE_SIZE
+        @player.moving_component.y = area[:destination][:y] + rand(0..(area[:destination][:height] / TILE_SIZE - 1)) * TILE_SIZE
+        change_map(area[:to_map])
         break
       end
     end
 
-    # '========================='
-    if !@monsters.empty?
-      to_delete = []
-      @monsters.each do |monster|
-        monster.xp <= 0 ? to_delete << monster : monster.update
-      end
-      to_delete.each {|monster| @monsters.delete(monster)}
+    @world.current_map.monsters.each do |monster|
+      monster.update
     end
   end
 
   def draw
-    camera_x, camera_y = update_camera_position(@map_loader.map_width, @map_loader.map_height)
+    camera_x, camera_y = update_camera_position(@world.current_map.width, @world.current_map.height)
 
     Gosu.translate(HALF_INTERFACE_SIZE_WIDTH, HALF_INTERFACE_SIZE_HEIGHT) do
       Gosu.translate(-camera_x, -camera_y) do
 
-        @map_loader.map['layers'].each do |layer|
-          next unless layer['type'] == 'tilelayer'
-
+        @world.current_map.tile_layers.each do |layer|
           layer['data'].each_with_index do |tile_id, index|
             next if tile_id == 0
 
-            x = (index % @map_loader.map_width) * TILE_SIZE
-            y = (index / @map_loader.map_width) * TILE_SIZE
-            @tiles[tile_id - 1].draw(x, y, 0)
+            x = (index % @world.current_map.width) * TILE_SIZE
+            y = (index / @world.current_map.width) * TILE_SIZE
+
+            @world.tiles[tile_id - 1].draw(x, y, 0)
           end
         end
 
-        DevInstruments.draw_grid(@map_loader.map_width, @map_loader.map_height, TILE_SIZE)
-        @pointer.draw_pointer_rect(camera_x, camera_y, TILE_SIZE)
+        DevInstruments.draw_grid(@world.current_map.width, @world.current_map.height, TILE_SIZE)
+        @pointer.draw_pointer_rect(camera_x, camera_y)
         @pointer.draw_pointer_click
 
         @player.draw
-
-        # '========================='
-        if !@monsters.empty?
-          @monsters.each {|monster| monster.draw}
+        @world.current_map.monsters.each do |monster|
+          monster.draw
         end
       end
     end

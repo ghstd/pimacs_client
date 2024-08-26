@@ -1,15 +1,15 @@
 class Monster
   attr_reader :monster_x, :monster_y
   attr_accessor :xp
-  def initialize(tile_size: 32, map_width:, map_height:, all_tiles_info:)
-    @tile_size = tile_size
-    @half_tile_size = tile_size / 2
+  def initialize(x:, y:, tile_size: 32, map_width:, map_height:, all_tiles_info:)
+    @tile_size = $TILE_SIZE
+    @half_tile_size = @tile_size / 2
 
     @move_right_images = Gosu::Image.load_tiles('assets/monster_right.png', 32, 32)
     @move_left_images = Gosu::Image.load_tiles('assets/monster_left.png', 32, 32)
 
-    @monster_x = 192
-    @monster_y = 128
+    @monster_x = x
+    @monster_y = y
     @monster_speed = 1
     @monster_width = 32
     @monster_height = 32

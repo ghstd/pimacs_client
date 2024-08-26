@@ -1,5 +1,5 @@
 module PixelsConverter
-  TILE_SIZE = 32
+  TILE_SIZE = $TILE_SIZE
 
   def self.pixels_to_tile_coord(x, y, tile_size = TILE_SIZE)
     tile_x = (x / tile_size).to_i

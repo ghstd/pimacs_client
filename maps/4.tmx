@@ -80,13 +80,13 @@
   <object id="1" name="transition" x="608" y="639" width="96" height="1">
    <properties>
     <property name="destination" value="x:160,y:32,width:96,height:32"/>
-    <property name="to" value="3"/>
+    <property name="to_map" value="3"/>
    </properties>
   </object>
   <object id="4" name="transition" x="0" y="224" width="1" height="96">
    <properties>
     <property name="destination" value="x:416,y:128,width:32,height:64"/>
-    <property name="to" value="5"/>
+    <property name="to_map" value="5"/>
    </properties>
   </object>
  </objectgroup>
