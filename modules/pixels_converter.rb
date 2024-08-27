@@ -20,4 +20,10 @@ module PixelsConverter
     return rounded_x, rounded_y
   end
 
+  def self.tile_coord_to_pixels(tile_x, tile_y, tile_size = TILE_SIZE)
+    x = tile_x * tile_size
+    y = tile_y * tile_size
+    return x, y
+  end
+
 end

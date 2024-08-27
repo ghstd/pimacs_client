@@ -1,5 +1,5 @@
 class Map
-  attr_accessor :width, :height, :tile_layers, :all_tiles_info, :transition_areas, :players, :monsters
+  attr_accessor :width, :height, :tile_layers, :all_tiles_info, :transition_areas, :players, :monsters, :projectiles
   TILE_SIZE = $TILE_SIZE
   def initialize(map_data)
     @map_data = map_data
@@ -14,6 +14,7 @@ class Map
 
     @players = Set.new
     @monsters = Set.new
+    @projectiles = Set.new
 
     init_layers
     init_tiles_info

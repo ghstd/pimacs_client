@@ -10,6 +10,8 @@ require_relative 'classes/map'
 require_relative 'classes/interface'
 require_relative 'classes/pointer'
 require_relative 'classes/basic_abilities/index'
+require_relative 'classes/animations/index'
+require_relative 'classes/skills_base/index'
 require_relative 'classes/player'
 require_relative 'classes/monster'
 require_relative 'classes/projectile'
@@ -64,8 +66,8 @@ class App < Gosu::Window
   end
 
   def update_camera_position(map_width, map_height)
-    camera_x = [@player.moving_component.x - HALF_WINDOW_WIDTH, 0].max
-    camera_y = [@player.moving_component.y - HALF_WINDOW_HEIGHT, 0].max
+    camera_x = [@player.x - HALF_WINDOW_WIDTH, 0].max
+    camera_y = [@player.y - HALF_WINDOW_HEIGHT, 0].max
 
     map_width_px = map_width * TILE_SIZE
     map_height_px = map_height * TILE_SIZE
@@ -98,29 +100,27 @@ class App < Gosu::Window
     if id == Gosu::MS_LEFT # MS_LEFT
 
       @player.moving_component.start_moving(target_tile_x, target_tile_y,)
-      @player.animating_component.set_sprite_direction(target_x)
 
       @pointer.init_click_animation(target_x, target_y)
 
     elsif id == Gosu::KB_Q # KB_Q
 
-      @player.animating_component.spelling = true
-      @player.create_projectile(x, y,camera_position_x, camera_position_y)
+      @player.skill_component.get_component(SkillsBase::Spelling).use
 
     elsif id == Gosu::MS_RIGHT # MS_RIGHT
 
-      monster = @monsters.find do |monster|
-        ((monster.monster_x / TILE_SIZE).to_i == target_tile_x) && ((monster.monster_y / TILE_SIZE).to_i == target_tile_y)
+      monster = @world.current_map.monsters.find do |monster|
+        (((monster.x + HALF_TILE_SIZE) / TILE_SIZE).to_i == target_tile_x) && (((monster.y + HALF_TILE_SIZE) / TILE_SIZE).to_i == target_tile_y)
       end
       if monster
-        @player.player_target = monster
+        @player.target = monster
       else
-        @player.player_target = [target_tile_x, target_tile_y]
+        @player.target = [target_tile_x, target_tile_y]
       end
 
     elsif id == Gosu::KB_ESCAPE # KB_ESCAPE
 
-      @player.player_target = nil
+      @player.target = nil
 
     end
   end
@@ -135,9 +135,9 @@ class App < Gosu::Window
     @world.current_map.transition_areas.each do |area|
       if @player.player_in_area?(area)
 
-        @player.player_target = nil
-        @player.moving_component.x = area[:destination][:x] + rand(0..(area[:destination][:width] / TILE_SIZE - 1)) * TILE_SIZE
-        @player.moving_component.y = area[:destination][:y] + rand(0..(area[:destination][:height] / TILE_SIZE - 1)) * TILE_SIZE
+        @player.target = nil
+        @player.x = area[:destination][:x] + rand(0..(area[:destination][:width] / TILE_SIZE - 1)) * TILE_SIZE
+        @player.y = area[:destination][:y] + rand(0..(area[:destination][:height] / TILE_SIZE - 1)) * TILE_SIZE
         change_map(area[:to_map])
         break
       end
@@ -145,6 +145,9 @@ class App < Gosu::Window
 
     @world.current_map.monsters.each do |monster|
       monster.update
+    end
+    @world.current_map.projectiles.each do |projectile|
+      projectile.update
     end
   end
 
@@ -173,10 +176,12 @@ class App < Gosu::Window
         @world.current_map.monsters.each do |monster|
           monster.draw
         end
+        @world.current_map.projectiles.each do |projectile|
+          projectile.draw
+        end
       end
     end
 
-    # Отрисовка интерфейса
     @interface.draw_interface
 
     # '========================='

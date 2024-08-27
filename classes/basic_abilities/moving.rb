@@ -1,19 +1,17 @@
 module BasicAbilities
   class Moving
-    attr_accessor :x, :y, :moving
-    def initialize(x, y)
+    attr_accessor
+    def initialize(owner)
       @tile_size = $TILE_SIZE
       @half_tile_size = @tile_size / 2
 
       @world = World.instance
+      @owner = owner
 
-      @x = x
-      @y = y
       @speed = 2
-      @width = 32
-      @height = 32
 
       @path = []
+      @final_goal = []
       @target_of_movement_x = nil
       @target_of_movement_y = nil
       @moving = false
@@ -25,6 +23,7 @@ module BasicAbilities
       path = get_path(x, y)
 
       if path
+        @final_goal = [x * @tile_size, y * @tile_size]
         @path = path
         if @moving
           @new_path = true
@@ -35,7 +34,7 @@ module BasicAbilities
     end
 
     def get_path(x, y)
-      start_tile_x, start_tile_y = PixelsConverter.pixels_to_tile_coord(@x, @y)
+      start_tile_x, start_tile_y = PixelsConverter.pixels_to_tile_coord(@owner.x, @owner.y)
 
       path = Pathfinder.find_path(
         start_x: start_tile_x,
@@ -67,7 +66,7 @@ module BasicAbilities
 
       if @new_path
         move_to_nearest_tile
-        return unless @x % @tile_size == 0 && @y % @tile_size == 0
+        return unless @owner.x % @tile_size == 0 && @owner.y % @tile_size == 0
         next_step
       else
         if @next_step
@@ -81,14 +80,14 @@ module BasicAbilities
       end
 
       # Определяем направление к цели
-      dx = @target_of_movement_x - @x
-      dy = @target_of_movement_y - @y
+      dx = @target_of_movement_x - @owner.x
+      dy = @target_of_movement_y - @owner.y
       distance = Math.sqrt(dx**2 + dy**2)
 
       # Если цель достигнута
       if distance < @speed
-        @x = @target_of_movement_x
-        @y = @target_of_movement_y
+        @owner.x = @target_of_movement_x
+        @owner.y = @target_of_movement_y
 
         if @path.empty?
           @moving = false
@@ -100,36 +99,58 @@ module BasicAbilities
         # Двигаем игрока в сторону цели
         dx /= distance
         dy /= distance
-        @x += (dx * @speed).to_i
-        @y += (dy * @speed).to_i
+        @owner.x += (dx * @speed).to_i
+        @owner.y += (dy * @speed).to_i
       end
 
       # Ограничиваем движение игрока рамками карты
-      @x = [[@x, 0].max, @world.current_map.width * @tile_size - @width].min
-      @y = [[@y, 0].max, @world.current_map.height * @tile_size - @height].min
+      @owner.x = [[@owner.x, 0].max, @world.current_map.width * @tile_size - @owner.width].min
+      @owner.y = [[@owner.y, 0].max, @world.current_map.height * @tile_size - @owner.height].min
     end
 
     def move_to_nearest_tile
-      dx = @target_of_movement_x - @x
-      dy = @target_of_movement_y - @y
+      dx = @target_of_movement_x - @owner.x
+      dy = @target_of_movement_y - @owner.y
       distance = Math.sqrt(dx**2 + dy**2)
 
       if distance < @speed
-        @x = @target_of_movement_x
-        @y = @target_of_movement_y
+        @owner.x = @target_of_movement_x
+        @owner.y = @target_of_movement_y
       else
         dx /= distance
         dy /= distance
-        @x += (dx * @speed).to_i
-        @y += (dy * @speed).to_i
+        @owner.x += (dx * @speed).to_i
+        @owner.y += (dy * @speed).to_i
+      end
+    end
+
+    def is_moving?
+      @moving
+    end
+
+    def is_new_path?
+      @new_path
+    end
+
+    def get_position
+      [@owner.x, @owner.y]
+    end
+
+    def get_direction
+      target_x, target_y = @final_goal
+      x, y = get_position
+
+      if x < target_x
+        return :right
+      elsif x > target_x
+        return :left
+      else
+        nil
       end
     end
 
     def update
       move
-    end
-
-    def draw
     end
   end
 end

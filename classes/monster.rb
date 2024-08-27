@@ -1,5 +1,5 @@
 class Monster
-  attr_reader :monster_x, :monster_y
+  attr_reader :x, :y
   attr_accessor :xp
   def initialize(x:, y:, tile_size: 32, map_width:, map_height:, all_tiles_info:)
     @tile_size = $TILE_SIZE
@@ -8,8 +8,8 @@ class Monster
     @move_right_images = Gosu::Image.load_tiles('assets/monster_right.png', 32, 32)
     @move_left_images = Gosu::Image.load_tiles('assets/monster_left.png', 32, 32)
 
-    @monster_x = x
-    @monster_y = y
+    @x = x
+    @y = y
     @monster_speed = 1
     @monster_width = 32
     @monster_height = 32
@@ -39,6 +39,10 @@ class Monster
     moving(target_tile_x, target_tile_y)
 
     @xp = 100
+  end
+
+  def get_hit(projectile)
+    p 'monster hit'
   end
 
   def start_moving(path)
@@ -71,7 +75,7 @@ class Monster
 
     if @new_path
       move_to_nearest_tile
-      return unless @monster_x % @tile_size == 0 && @monster_y % @tile_size == 0
+      return unless @x % @tile_size == 0 && @y % @tile_size == 0
       start_path
     else
       if @next_step
@@ -85,14 +89,14 @@ class Monster
     end
 
     # Определяем направление к цели
-    dx = @target_x - @monster_x
-    dy = @target_y - @monster_y
+    dx = @target_x - @x
+    dy = @target_y - @y
     distance = Math.sqrt(dx**2 + dy**2)
 
     # Если цель достигнута
     if distance < @monster_speed
-      @monster_x = @target_x
-      @monster_y = @target_y
+      @x = @target_x
+      @y = @target_y
 
       if @path.empty?
         @moving = false
@@ -104,35 +108,35 @@ class Monster
       # Двигаем игрока в сторону цели
       dx /= distance
       dy /= distance
-      @monster_x += (dx * @monster_speed).to_i
-      @monster_y += (dy * @monster_speed).to_i
+      @x += (dx * @monster_speed).to_i
+      @y += (dy * @monster_speed).to_i
     end
 
     # Ограничиваем движение игрока рамками карты
-    @monster_x = [[@monster_x, 0].max, map_width * @tile_size - @monster_width].min
-    @monster_y = [[@monster_y, 0].max, map_height * @tile_size - @monster_height].min
+    @x = [[@x, 0].max, map_width * @tile_size - @monster_width].min
+    @y = [[@y, 0].max, map_height * @tile_size - @monster_height].min
   end
 
   def move_to_nearest_tile
-    dx = @target_x - @monster_x
-    dy = @target_y - @monster_y
+    dx = @target_x - @x
+    dy = @target_y - @y
     distance = Math.sqrt(dx**2 + dy**2)
 
     if distance < @monster_speed
-      @monster_x = @target_x
-      @monster_y = @target_y
+      @x = @target_x
+      @y = @target_y
     else
       dx /= distance
       dy /= distance
-      @monster_x += (dx * @monster_speed).to_i
-      @monster_y += (dy * @monster_speed).to_i
+      @x += (dx * @monster_speed).to_i
+      @y += (dy * @monster_speed).to_i
     end
   end
 
   def set_sprite_direction(target_x, target_y)
-    if @monster_x < target_x
+    if @x < target_x
       @direction = :right
-    elsif @monster_x > target_x
+    elsif @x > target_x
       @direction = :left
     end
   end
@@ -169,8 +173,8 @@ class Monster
   end
 
   def moving(target_tile_x, target_tile_y)
-    start_tile_x = (@monster_x / @tile_size).to_i
-    start_tile_y = (@monster_y / @tile_size).to_i
+    start_tile_x = (@x / @tile_size).to_i
+    start_tile_y = (@y / @tile_size).to_i
 
     path = Pathfinder.find_path(
       start_x: start_tile_x,
@@ -208,7 +212,7 @@ class Monster
   end
 
   def draw
-    @monster_image.draw(@monster_x, @monster_y, 1)
+    @monster_image.draw(@x, @y, 1)
     # draw_monster_target
     # draw_projectiles
   end
