@@ -1,7 +1,7 @@
 class Projectile
-  attr_reader :x, :y
+  attr_reader :x, :y, :size
 
-  def initialize(target: nil, start_x:, start_y:, target_x:, target_y:, speed:, size: 6)
+  def initialize(target: nil, start_x:, start_y:, target_x:, target_y:, speed:, size: 8)
     @world = World.instance
 
     @target = target
@@ -12,6 +12,8 @@ class Projectile
     @speed = speed
     @size = size
 
+    @animations_component = BasicComponents::Animations.new(self)
+    @animations_component.add_animation(Animations::Skills::RedBall.new(self))
     set_movement_direction
   end
 
@@ -29,6 +31,12 @@ class Projectile
 
   def reached_target?
     ( (@x - @target_x).abs < @speed ) && ( (@y - @target_y).abs < @speed )
+  end
+
+  def delete_projectile
+    @animations_component.delete_timeouts
+    @world.current_map.projectiles.delete(self)
+    @world.current_map.animations << Animations::Skills::RedBallSplash.new(@x, @y, 3)
   end
 
   def update
@@ -50,7 +58,7 @@ class Projectile
     collides = tiles_collides.flatten.include?(true)
 
     if collides
-      @world.current_map.projectiles.delete(self)
+      delete_projectile
       return
     end
 
@@ -62,16 +70,18 @@ class Projectile
 
     if monster
       monster.get_hit(self)
-      @world.current_map.projectiles.delete(self)
+      delete_projectile
       return
     end
 
     if reached_target?
-      @world.current_map.projectiles.delete(self)
+      delete_projectile
     end
+
+    @animations_component.update
   end
 
   def draw
-    Gosu.draw_rect(@x - @size / 2, @y - @size / 2, @size, @size, Gosu::Color::RED)
+    @animations_component.draw
   end
 end

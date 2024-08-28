@@ -2,7 +2,7 @@ require 'gosu'
 require 'json'
 require 'set'
 require 'singleton'
-require 'observer'
+# require 'observer'
 
 $TILE_SIZE = 32
 
@@ -18,6 +18,7 @@ require_relative 'classes/monster'
 require_relative 'classes/projectile'
 require_relative 'modules/pathfinder'
 require_relative 'modules/pixels_converter'
+require_relative 'modules/timeouts_registrator'
 require_relative 'modules/dev_instruments'
 
 class App < Gosu::Window
@@ -150,6 +151,7 @@ class App < Gosu::Window
     @world.current_map.projectiles.each do |projectile|
       projectile.update
     end
+    TimeoutsRegistrator.update
   end
 
   def draw
@@ -179,6 +181,9 @@ class App < Gosu::Window
         end
         @world.current_map.projectiles.each do |projectile|
           projectile.draw
+        end
+        @world.current_map.animations.each do |animation|
+          animation.draw
         end
       end
     end
