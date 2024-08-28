@@ -2,6 +2,7 @@ require 'gosu'
 require 'json'
 require 'set'
 require 'singleton'
+require 'observer'
 
 $TILE_SIZE = 32
 
@@ -9,7 +10,7 @@ require_relative 'classes/world'
 require_relative 'classes/map'
 require_relative 'classes/interface'
 require_relative 'classes/pointer'
-require_relative 'classes/basic_abilities/index'
+require_relative 'classes/basic_components/index'
 require_relative 'classes/animations/index'
 require_relative 'classes/skills_base/index'
 require_relative 'classes/player'
@@ -62,7 +63,7 @@ class App < Gosu::Window
 
   def change_map(map_name)
     @world.change_map(map_name)
-    @player.moving_component.stop_moving
+    @player.move_component.stop_moving
   end
 
   def update_camera_position(map_width, map_height)
@@ -99,13 +100,13 @@ class App < Gosu::Window
 
     if id == Gosu::MS_LEFT # MS_LEFT
 
-      @player.moving_component.start_moving(target_tile_x, target_tile_y,)
+      @player.move_component.start_moving(target_tile_x, target_tile_y,)
 
       @pointer.init_click_animation(target_x, target_y)
 
     elsif id == Gosu::KB_Q # KB_Q
 
-      @player.skill_component.get_component(SkillsBase::Spelling).use
+      @player.skills_component.get_skill(SkillsBase::RedBall).use
 
     elsif id == Gosu::MS_RIGHT # MS_RIGHT
 

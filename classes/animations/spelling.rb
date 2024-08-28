@@ -1,9 +1,9 @@
 module Animations
   class Spelling
     attr_accessor :spelling
-    def initialize(spell_image_path, aggregator)
+    def initialize(spell_image_path, owner)
       @spell_image = Gosu::Image.new(spell_image_path)
-      @aggregator = aggregator
+      @owner = owner
 
       @spelling = false
       @spelling_counter = 0
@@ -13,7 +13,7 @@ module Animations
     def update_current_image_when_spelling
       if @spelling
 
-        @aggregator.current_image = @spell_image
+        @owner.current_image = @spell_image
         @spelling_counter += 1
         if @spelling_counter >= @spelling_delay
           @spelling = false

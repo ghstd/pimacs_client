@@ -1,9 +1,10 @@
 class Projectile
   attr_reader :x, :y
 
-  def initialize(start_x:, start_y:, target_x:, target_y:, speed:, size: 6)
+  def initialize(target: nil, start_x:, start_y:, target_x:, target_y:, speed:, size: 6)
     @world = World.instance
 
+    @target = target
     @x = start_x
     @y = start_y
     @target_x = target_x
@@ -11,7 +12,14 @@ class Projectile
     @speed = speed
     @size = size
 
-    # Определяем направление движения
+    set_movement_direction
+  end
+
+  def set_movement_direction
+    if @target
+      @target_x = @target.x + @target.width / 2
+      @target_y = @target.y + @target.height / 2
+    end
     dx = @target_x - @x
     dy = @target_y - @y
     distance = Math.sqrt(dx**2 + dy**2)
@@ -24,6 +32,10 @@ class Projectile
   end
 
   def update
+    if @target && (@target.x != @target_x || @target.y != @target_y)
+      set_movement_direction
+    end
+
     @x += @velocity_x
     @y += @velocity_y
 

@@ -1,18 +1,17 @@
-module BasicAbilities
-  class Animating
+module BasicComponents
+  class Animations
     attr_accessor :owner, :current_image
     def initialize(owner)
       @owner = owner
 
       @components = {}
-      @current_image = nil
     end
 
-    def add_component(component)
+    def add_animation(component)
       @components[component.class] = component
     end
 
-    def get_component(component_class)
+    def get_animation(component_class)
       @components[component_class]
     end
 
@@ -23,7 +22,7 @@ module BasicAbilities
     end
 
     def draw
-      @current_image.draw(@owner.x, @owner.y, 1)
+      @owner.current_image.draw(@owner.x, @owner.y, 1)
     end
   end
 end

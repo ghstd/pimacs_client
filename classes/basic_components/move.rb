@@ -1,5 +1,5 @@
-module BasicAbilities
-  class Moving
+module BasicComponents
+  class Move
     attr_accessor
     def initialize(owner)
       @tile_size = $TILE_SIZE

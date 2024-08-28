@@ -1,6 +1,5 @@
 class Monster
-  attr_reader :x, :y
-  attr_accessor :xp
+  attr_accessor :x, :y, :width, :height, :xp
   def initialize(x:, y:, tile_size: 32, map_width:, map_height:, all_tiles_info:)
     @tile_size = $TILE_SIZE
     @half_tile_size = @tile_size / 2
@@ -10,9 +9,9 @@ class Monster
 
     @x = x
     @y = y
-    @monster_speed = 1
-    @monster_width = 32
-    @monster_height = 32
+    @speed = 1
+    @width = 32
+    @height = 32
 
     @monster_image = nil
     @current_frame = 0
@@ -42,7 +41,7 @@ class Monster
   end
 
   def get_hit(projectile)
-    p 'monster hit'
+    p "#{self.class} hit"
   end
 
   def start_moving(path)
@@ -94,7 +93,7 @@ class Monster
     distance = Math.sqrt(dx**2 + dy**2)
 
     # Если цель достигнута
-    if distance < @monster_speed
+    if distance < @speed
       @x = @target_x
       @y = @target_y
 
@@ -108,13 +107,13 @@ class Monster
       # Двигаем игрока в сторону цели
       dx /= distance
       dy /= distance
-      @x += (dx * @monster_speed).to_i
-      @y += (dy * @monster_speed).to_i
+      @x += (dx * @speed).to_i
+      @y += (dy * @speed).to_i
     end
 
     # Ограничиваем движение игрока рамками карты
-    @x = [[@x, 0].max, map_width * @tile_size - @monster_width].min
-    @y = [[@y, 0].max, map_height * @tile_size - @monster_height].min
+    @x = [[@x, 0].max, map_width * @tile_size - @width].min
+    @y = [[@y, 0].max, map_height * @tile_size - @height].min
   end
 
   def move_to_nearest_tile
@@ -122,14 +121,14 @@ class Monster
     dy = @target_y - @y
     distance = Math.sqrt(dx**2 + dy**2)
 
-    if distance < @monster_speed
+    if distance < @speed
       @x = @target_x
       @y = @target_y
     else
       dx /= distance
       dy /= distance
-      @x += (dx * @monster_speed).to_i
-      @y += (dy * @monster_speed).to_i
+      @x += (dx * @speed).to_i
+      @y += (dy * @speed).to_i
     end
   end
 

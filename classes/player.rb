@@ -1,6 +1,6 @@
 class Player
-  attr_accessor :x, :y, :width, :height,
-    :moving_component, :animating_component, :skill_component,
+  attr_accessor :x, :y, :width, :height, :current_image,
+    :move_component, :animations_component, :skills_component,
     :target, :xp, :mp
   def initialize(x, y)
     @tile_size = $TILE_SIZE
@@ -12,28 +12,34 @@ class Player
     @width = 32
     @height = 32
 
-    @moving_component = BasicAbilities::Moving.new(self)
-    @animating_component = BasicAbilities::Animating.new(self)
-    @skill_component = BasicAbilities::Skillful.new()
-
-    @animating_component.add_component(Animations::Walking.new(
-      'assets/wizard_right.png',
-      'assets/wizard_left.png',
-      32,
-      @animating_component
-    ))
-
-    @animating_component.add_component(Animations::Spelling.new(
-      'assets/wizard_spell.png',
-      @animating_component
-    ))
-
-    @skill_component.add_component(SkillsBase::Spelling.new(self))
-
     @target = nil
+
+    @current_image = nil
 
     @xp = 100
     @mp = 100
+
+    @move_component = BasicComponents::Move.new(self)
+    @animations_component = BasicComponents::Animations.new(self)
+    @skills_component = BasicComponents::Skills.new()
+
+    @animations_component.add_animation(Animations::Walking.new(
+      'assets/wizard_right.png',
+      'assets/wizard_left.png',
+      32,
+      self
+    ))
+
+    @animations_component.add_animation(Animations::Spelling.new(
+      'assets/wizard_spell.png',
+      self
+    ))
+
+    @skills_component.add_skill(SkillsBase::RedBall.new(self))
+  end
+
+  def get_hit(projectile)
+    p "#{self.class} hit"
   end
 
   def player_in_area?(area)
@@ -88,12 +94,12 @@ class Player
   end
 
   def update
-    @moving_component.update
-    @animating_component.update
+    @move_component.update
+    @animations_component.update
   end
 
   def draw
-    @animating_component.draw
+    @animations_component.draw
     draw_player_target
   end
 end
