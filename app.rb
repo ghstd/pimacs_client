@@ -11,11 +11,12 @@ require_relative 'classes/map'
 require_relative 'classes/interface'
 require_relative 'classes/pointer'
 require_relative 'classes/basic_components/index'
+require_relative 'classes/secondary_components/index'
 require_relative 'classes/animations/index'
 require_relative 'classes/skills_base/index'
+require_relative 'classes/projectiles/index'
 require_relative 'classes/player'
-require_relative 'classes/monster'
-require_relative 'classes/projectile'
+require_relative 'classes/monsters/index'
 require_relative 'modules/pathfinder'
 require_relative 'modules/pixels_converter'
 require_relative 'modules/timeouts_registrator'
@@ -64,7 +65,6 @@ class App < Gosu::Window
 
   def change_map(map_name)
     @world.change_map(map_name)
-    @player.move_component.stop_moving
   end
 
   def update_camera_position(map_width, map_height)
@@ -138,9 +138,16 @@ class App < Gosu::Window
       if @player.player_in_area?(area)
 
         @player.target = nil
+        @player.move_component.stop_moving
+        @world.current_map.players.delete(@player)
         @player.x = area[:destination][:x] + rand(0..(area[:destination][:width] / TILE_SIZE - 1)) * TILE_SIZE
         @player.y = area[:destination][:y] + rand(0..(area[:destination][:height] / TILE_SIZE - 1)) * TILE_SIZE
         change_map(area[:to_map])
+        @world.current_map.players.add(@player)
+
+        # @world.maps.each do |map_name, map|
+        #   p "#{map_name} - players.count: #{map.players.count}"
+        # end
         break
       end
     end
@@ -152,6 +159,7 @@ class App < Gosu::Window
       projectile.update
     end
     TimeoutsRegistrator.update
+    # p TimeoutsRegistrator.info
   end
 
   def draw

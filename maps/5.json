@@ -52,7 +52,7 @@
                 {
                  "height":128,
                  "id":2,
-                 "name":"monster",
+                 "name":"Slime",
                  "properties":[
                         {
                          "name":"quantity",

@@ -21,7 +21,7 @@ class Map
     init_layers
     init_tiles_info
     init_transition_areas
-    init_monsters
+    TimeoutsRegistrator.add_timeout(observer: self, method: :init_monsters, delay: 50, type: :once)
   end
 
   def init_layers
@@ -84,15 +84,18 @@ class Map
       layer['objects'].each do |object|
         quantity = object['properties'].find { |prop| prop['name'] == 'quantity' }['value']
         quantity.times do
-          x = (rand(object['x']..(object['x'] + object['width'] - TILE_SIZE)) / TILE_SIZE).to_i * TILE_SIZE
-          y = (rand(object['y']..(object['y'] + object['height'] - TILE_SIZE)) / TILE_SIZE).to_i * TILE_SIZE
-          monster = Object.const_get(object['name'].capitalize).new(
+          x1 = object['x']
+          y1 = object['y']
+          x2 = object['x'] + object['width'] - TILE_SIZE
+          y2 = object['y'] + object['height'] - TILE_SIZE
+          start = PixelsConverter.pixels_to_tile_coord(x1, y1)
+          finish = PixelsConverter.pixels_to_tile_coord(x2, y2)
+          x, y = PixelsConverter.tile_coord_to_pixels(rand(start[0]..finish[0]), rand(start[1]..finish[1]))
+          monster = Object.const_get("Monsters::#{object['name']}").new(
             x: x,
             y: y,
-            tile_size: TILE_SIZE,
-            map_width: @width,
-            map_height: @height,
-            all_tiles_info: @all_tiles_info
+            respawn_start: start,
+            respawn_finish: finish
           )
           @monsters << monster
         end

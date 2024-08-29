@@ -1,6 +1,6 @@
 class World
   include Singleton
-  attr_accessor :current_map, :tiles
+  attr_accessor :current_map, :tiles, :maps
 
   def initialize
     @world = JSON.parse(File.read('maps/game.world'))

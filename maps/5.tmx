@@ -33,7 +33,7 @@
 </data>
  </layer>
  <objectgroup id="4" name="Monsters">
-  <object id="2" name="monster" x="160" y="96" width="160" height="128">
+  <object id="2" name="Slime" x="160" y="96" width="160" height="128">
    <properties>
     <property name="quantity" type="int" value="3"/>
    </properties>

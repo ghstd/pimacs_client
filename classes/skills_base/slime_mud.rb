@@ -1,5 +1,5 @@
 module SkillsBase
-  class RedBall
+  class SlimeMud
     def initialize(owner)
       @tile_size = $TILE_SIZE
       @half_tile_size = @tile_size / 2
@@ -22,14 +22,15 @@ module SkillsBase
 
       return if @owner.x == x && @owner.y == y
 
-      projectile = Projectiles::RedBall.new(
+      projectile = Projectiles::SlimeMud.new(
         owner: @owner,
         target: (@owner.target.is_a? Array) ? nil : @owner.target,
         start_x: @owner.x + @half_tile_size,
         start_y: @owner.y + @half_tile_size,
         target_x: x + @half_tile_size,
         target_y: y + @half_tile_size,
-        speed: 5
+        speed: 4,
+        size: 10
       )
       @world.current_map.projectiles << projectile
     end

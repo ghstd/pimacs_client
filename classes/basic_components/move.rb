@@ -8,8 +8,6 @@ module BasicComponents
       @world = World.instance
       @owner = owner
 
-      @speed = 2
-
       @path = []
       @final_goal = []
       @target_of_movement_x = nil
@@ -17,6 +15,7 @@ module BasicComponents
       @moving = false
       @new_path = false
       @next_step = false
+      @stop_on_nearest_tile = false
     end
 
     def start_moving(x, y)
@@ -51,6 +50,10 @@ module BasicComponents
       @moving = false
     end
 
+    def stop_on_nearest_tile
+      @stop_on_nearest_tile = true
+    end
+
     def next_step
       @path.shift # remove start tile
       return if @path.empty?
@@ -68,6 +71,9 @@ module BasicComponents
         move_to_nearest_tile
         return unless @owner.x % @tile_size == 0 && @owner.y % @tile_size == 0
         next_step
+      elsif @stop_on_nearest_tile
+        move_to_nearest_tile
+        return
       else
         if @next_step
           next_tile = @path.shift
@@ -85,7 +91,7 @@ module BasicComponents
       distance = Math.sqrt(dx**2 + dy**2)
 
       # Если цель достигнута
-      if distance < @speed
+      if distance < @owner.speed
         @owner.x = @target_of_movement_x
         @owner.y = @target_of_movement_y
 
@@ -99,8 +105,8 @@ module BasicComponents
         # Двигаем игрока в сторону цели
         dx /= distance
         dy /= distance
-        @owner.x += (dx * @speed).to_i
-        @owner.y += (dy * @speed).to_i
+        @owner.x += (dx * @owner.speed).to_i
+        @owner.y += (dy * @owner.speed).to_i
       end
 
       # Ограничиваем движение игрока рамками карты
@@ -113,14 +119,17 @@ module BasicComponents
       dy = @target_of_movement_y - @owner.y
       distance = Math.sqrt(dx**2 + dy**2)
 
-      if distance < @speed
+      if distance < @owner.speed
         @owner.x = @target_of_movement_x
         @owner.y = @target_of_movement_y
+
+        stop_moving if @stop_on_nearest_tile
+        @stop_on_nearest_tile = false
       else
         dx /= distance
         dy /= distance
-        @owner.x += (dx * @speed).to_i
-        @owner.y += (dy * @speed).to_i
+        @owner.x += (dx * @owner.speed).to_i
+        @owner.y += (dy * @owner.speed).to_i
       end
     end
 

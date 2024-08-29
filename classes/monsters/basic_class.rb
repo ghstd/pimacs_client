@@ -1,9 +1,9 @@
 module Monsters
   class BasicClass
-    attr_accessor :x, :y, :width, :height, :current_image,
-      :move_component, :animations_component, :skills_component,
-      :target, :xp, :mp
-    def initialize(x, y)
+    attr_accessor :x, :y, :width, :height, :speed, :current_image,
+      :move_component, :animations_component,
+      :target, :respawn_start, :respawn_finish, :xp
+    def initialize(x:, y:, speed: 1, respawn_start: nil, respawn_finish: nil)
       @tile_size = $TILE_SIZE
       @half_tile_size = @tile_size / 2
 
@@ -12,23 +12,16 @@ module Monsters
       @y = y
       @width = 32
       @height = 32
+      @speed = speed
 
       @target = nil
 
       @current_image = nil
 
+      @respawn_start = respawn_start || [0, 0]
+      @respawn_finish = respawn_finish || PixelsConverter.pixels_to_tile_coord(@world.current_map.width - @tile_size, @world.current_map.height - @tile_size)
+
       @xp = 100
-
-      @move_component = BasicComponents::Move.new(self)
-      @animations_component = BasicComponents::Animations.new(self)
-
-      @animations_component.add_animation(Animations::Walking.new(
-        'assets/monster_right.png',
-        'assets/monster_left.png',
-        32,
-        self
-      ))
-
     end
 
     def get_hit(projectile)
@@ -36,13 +29,9 @@ module Monsters
     end
 
     def update
-      @move_component.update
-      @animations_component.update
     end
 
     def draw
-      @animations_component.draw
-      draw_player_target
     end
   end
 

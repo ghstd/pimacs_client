@@ -5,8 +5,8 @@ module TimeoutsRegistrator
     @timeouts.count
   end
 
-  def self.add_timeout(observer:, method:, delay:, type: :infinity)
-    timeout = TimeoutsRegistrator::Timeout.new(delay, type)
+  def self.add_timeout(observer:, method:, delay:, type: :infinity, times: 1)
+    timeout = TimeoutsRegistrator::Timeout.new(delay, type, times)
     timeout.add_observer(observer, method)
     @timeouts.push(timeout)
     return timeout
@@ -31,12 +31,13 @@ module TimeoutsRegistrator
 
   class Timeout
     attr_accessor :delete
-    def initialize(delay, type = :infinity)
+    def initialize(delay, type = :infinity, times = 1)
       @observer = nil
       @method = nil
       @delay = delay
       @counter = 0
-      @type = type
+      @type = type  # :once, :times, :infinity
+      @times = times
       @stop = false
       @delete = false
     end
@@ -59,6 +60,16 @@ module TimeoutsRegistrator
         if @type == :once
           stop
           @delete = true
+          return
+        end
+
+        if @type == :times
+          @times -= 1
+          if @times <= 0
+            stop
+            @delete = true
+            return
+          end
         end
       end
     end

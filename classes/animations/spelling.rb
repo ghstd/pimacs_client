@@ -1,13 +1,13 @@
 module Animations
   class Spelling
     attr_accessor :spelling
-    def initialize(spell_image_path, owner)
+    def initialize(spell_image_path, owner, spelling_delay = 20)
       @spell_image = Gosu::Image.new(spell_image_path)
       @owner = owner
 
       @spelling = false
       @spelling_counter = 0
-      @spelling_delay = 20
+      @spelling_delay = spelling_delay
     end
 
     def update_current_image_when_spelling

@@ -1,5 +1,5 @@
 class Player
-  attr_accessor :x, :y, :width, :height, :current_image,
+  attr_accessor :x, :y, :width, :height, :speed, :current_image,
     :move_component, :animations_component, :skills_component,
     :target, :xp, :mp
   def initialize(x, y)
@@ -11,6 +11,7 @@ class Player
     @y = y
     @width = 32
     @height = 32
+    @speed = 2
 
     @target = nil
 
