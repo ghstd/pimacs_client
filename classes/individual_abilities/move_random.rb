@@ -1,7 +1,7 @@
-module SecondaryComponents
+module IndividualAbilities
   class MoveRandom
     attr_accessor :timeout
-    def initialize(owner)
+    def initialize(owner:)
       @owner = owner
 
       @timeout = TimeoutsRegistrator.add_timeout(
@@ -21,7 +21,7 @@ module SecondaryComponents
 
     def change_direction_and_move
       x, y = random_direction
-      @owner.move_component.start_moving(x, y)
+      @owner.start_moving(x, y)
     end
 
     def delete_timeout

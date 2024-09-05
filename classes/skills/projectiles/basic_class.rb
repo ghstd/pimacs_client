@@ -14,8 +14,15 @@ module Projectiles
       @speed = speed
       @size = size
 
-      @animations_component = BasicComponents::Animations.new(self)
+      @animation = nil
+
+      @reached_target = false
+
       set_movement_direction
+    end
+
+    def add_animation(animation)
+      @animation = animation
     end
 
     def set_movement_direction
@@ -35,7 +42,13 @@ module Projectiles
     end
 
     def delete_projectile
-      @animations_component.delete_timeouts
+      if !@reached_target
+        sign_x = @velocity_x <=> 0
+        sign_y = @velocity_y <=> 0
+        @x += sign_x * $TILE_SIZE / 8
+        @y += sign_y * $TILE_SIZE / 8
+      end
+      @animation.delete_timeout
       @world.current_map.projectiles.delete(self)
     end
 
@@ -57,6 +70,7 @@ module Projectiles
       end
       collides = tiles_collides.flatten.include?(true)
 
+      # colliding with tiles
       if collides
         delete_projectile
         return
@@ -88,14 +102,13 @@ module Projectiles
 
       # reached_target
       if reached_target?
+        @reached_target = true
         delete_projectile
       end
-
-      @animations_component.update
     end
 
     def draw
-      @animations_component.draw
+      @animation.draw
     end
   end
 

@@ -14,6 +14,13 @@ class World
 
     @current_map = @maps['4']
 
+    # '======================================='
+    # data = @current_map.all_tiles_info.to_json
+    # File.open('all_tiles_info.json', 'w') do |file|
+    #   file.write(data)
+    # end
+    # '======================================='
+
     tileset_image_base = Gosu::Image.new('assets/base.png')
     tileset_image_water = Gosu::Image.new('assets/water.png')
     tiles_base = Gosu::Image.load_tiles(tileset_image_base, $TILE_SIZE, $TILE_SIZE)

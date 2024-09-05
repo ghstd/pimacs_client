@@ -2,7 +2,6 @@ require 'gosu'
 require 'json'
 require 'set'
 require 'singleton'
-# require 'observer'
 
 $TILE_SIZE = 32
 
@@ -10,17 +9,16 @@ require_relative 'classes/world'
 require_relative 'classes/map'
 require_relative 'classes/interface'
 require_relative 'classes/pointer'
-require_relative 'classes/basic_components/index'
-require_relative 'classes/secondary_components/index'
-require_relative 'classes/animations/index'
-require_relative 'classes/skills_base/index'
-require_relative 'classes/projectiles/index'
+require_relative 'classes/individual_abilities/index'
+require_relative 'classes/skills/index'
 require_relative 'classes/player'
 require_relative 'classes/monsters/index'
 require_relative 'modules/pathfinder'
 require_relative 'modules/pixels_converter'
 require_relative 'modules/timeouts_registrator'
 require_relative 'modules/dev_instruments'
+
+require_relative 'client'
 
 class App < Gosu::Window
   WINDOW_WIDTH = 640
@@ -35,13 +33,15 @@ class App < Gosu::Window
   HALF_INTERFACE_SIZE_HEIGHT = INTERFACE_SIZE_HEIGHT / 2
   INTERFACE_COLOR = Gosu::Color.new(255, 22, 35, 46)
 
+  attr_accessor :timestamp
+
   def initialize
     super(WINDOW_WIDTH + INTERFACE_SIZE_WIDTH, WINDOW_HEIGHT + INTERFACE_SIZE_HEIGHT)
     self.caption = "Tiled Map Test"
 
     @world = World.instance
 
-    @player = Player.new(160, 160)
+    @player = Player.new(192, 192)
 
     @world.current_map.players.add(@player)
 
@@ -61,6 +61,16 @@ class App < Gosu::Window
 
     # Флаг для проверки первого кадра
     @first_frame = true
+
+    # '========================='
+    # @client = WebSocketClient.new(self, "ws://localhost:3000/cable")
+    # @client.connect
+
+    @timestamp = 0
+  end
+
+  def wait(time)
+    sleep(time)
   end
 
   def change_map(map_name)
@@ -101,13 +111,18 @@ class App < Gosu::Window
 
     if id == Gosu::MS_LEFT # MS_LEFT
 
-      @player.move_component.start_moving(target_tile_x, target_tile_y,)
+      # @player.move_component.start_moving(target_tile_x, target_tile_y)
+      @player.start_moving(target_tile_x, target_tile_y)
 
       @pointer.init_click_animation(target_x, target_y)
 
+      # '========================='
+      # data = {goal_x: target_tile_x, goal_y: target_tile_y}
+      # @client.ms_left(data)
+
     elsif id == Gosu::KB_Q # KB_Q
 
-      @player.skills_component.get_skill(SkillsBase::RedBall).use
+      @player.skills[Skills::RedBall].use_skill
 
     elsif id == Gosu::MS_RIGHT # MS_RIGHT
 
@@ -128,6 +143,8 @@ class App < Gosu::Window
   end
 
   def update
+    @timestamp = (Time.now.to_f * 1000).to_i
+
     # Сброс флага после первого кадра
     @first_frame = false if @first_frame
 
@@ -138,7 +155,8 @@ class App < Gosu::Window
       if @player.player_in_area?(area)
 
         @player.target = nil
-        @player.move_component.stop_moving
+        # @player.move_component.stop_moving
+        @player.stop_moving
         @world.current_map.players.delete(@player)
         @player.x = area[:destination][:x] + rand(0..(area[:destination][:width] / TILE_SIZE - 1)) * TILE_SIZE
         @player.y = area[:destination][:y] + rand(0..(area[:destination][:height] / TILE_SIZE - 1)) * TILE_SIZE
@@ -160,6 +178,27 @@ class App < Gosu::Window
     end
     TimeoutsRegistrator.update
     # p TimeoutsRegistrator.info
+
+    # '=============================='
+    # message = @client.read_message
+    # if message
+    #   client_x, client_y = @player.move_component.get_position
+    #   server_x, server_y = message['player_position']
+
+    #   client_timestamp = @timestamp
+    #   server_timestamp = message['timestamp']
+
+    #   # p '==============================='
+    #   # p "client_x: #{client_x}, client_y: #{client_y}"
+    #   # p "server_x: #{server_x}, server_y: #{server_y}"
+    #   p "diff_x: #{server_x - client_x}, diff_y: #{server_y - client_y}"
+    #   diff_timestamp = server_timestamp - client_timestamp
+    #   # p "diff_timestamp: #{server_timestamp - client_timestamp}"
+    #   # p '==============================='
+
+    #   @player.x = server_x
+    #   @player.y = server_y
+    # end
   end
 
   def draw

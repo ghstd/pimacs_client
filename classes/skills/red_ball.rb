@@ -1,16 +1,22 @@
-module SkillsBase
-  class SlimeMud
-    def initialize(owner)
+module Skills
+  class RedBall
+    def initialize(owner:)
+      @owner = owner
       @tile_size = $TILE_SIZE
       @half_tile_size = @tile_size / 2
       @world = World.instance
-      @owner = owner
+
+      @creature_animation = CreatureAnimations::SimpleSpell.new(
+        owner: @owner,
+        image: 'assets/wizard_spell.png',
+        spelling_delay: 20
+      )
     end
 
-    def use
+    def use_skill
       return unless @owner.target
 
-      @owner.animations_component.get_animation(Animations::Spelling)&.spelling = true
+      @creature_animation.animation_start
 
       if @owner.target.is_a? Array
         tile_x, tile_y = @owner.target
@@ -22,15 +28,17 @@ module SkillsBase
 
       return if @owner.x == x && @owner.y == y
 
-      projectile = Projectiles::SlimeMud.new(
+      projectile = Projectiles::RedBall.new(
         owner: @owner,
         target: (@owner.target.is_a? Array) ? nil : @owner.target,
         start_x: @owner.x + @half_tile_size,
         start_y: @owner.y + @half_tile_size,
         target_x: x + @half_tile_size,
         target_y: y + @half_tile_size,
-        speed: 4,
-        size: 10
+        speed: 5,
+        size: 8,
+        projectile_animation: ProjectileAnimations::RedBall,
+        on_target_animation: OnTargetAnimations::RedBall
       )
       @world.current_map.projectiles << projectile
     end

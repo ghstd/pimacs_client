@@ -1,4 +1,4 @@
-module SecondaryComponents
+module IndividualAbilities
   class DetectInRadius
     def initialize(owner:, radius: 1)
       @world = World.instance

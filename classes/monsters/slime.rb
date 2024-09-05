@@ -1,5 +1,8 @@
 module Monsters
   class Slime < Monsters::BasicClass
+
+    include IndividualAbilities::Move
+
     def initialize(x:, y:, speed: 1, respawn_start: nil, respawn_finish: nil)
       super(
         x: x,
@@ -9,38 +12,30 @@ module Monsters
         respawn_finish: respawn_finish
       )
 
+      init_move_module
+
+      add_animation(IndividualAbilities::Animations::Walking.new(
+        owner: self,
+        move_right: 'assets/slime_right.png',
+        move_left: 'assets/slime_left.png'
+      ))
+
+      add_skill(Skills::SlimeMud.new(owner: self))
+
       @in_action = false
 
-      @move_component = BasicComponents::Move.new(self)
-      @animations_component = BasicComponents::Animations.new(self)
-      @skills_component = BasicComponents::Skills.new()
-      @move_random_component = SecondaryComponents::MoveRandom.new(self)
-      @detect_in_radius_component = SecondaryComponents::DetectInRadius.new(
+      @move_random = IndividualAbilities::MoveRandom.new(owner: self)
+      @detect_in_radius = IndividualAbilities::DetectInRadius.new(
         owner: self,
         radius: 3
       )
-
-      @animations_component.add_animation(Animations::Walking.new(
-        'assets/slime_right.png',
-        'assets/slime_left.png',
-        32,
-        self
-      ))
-
-      @animations_component.add_animation(Animations::Spelling.new(
-        'assets/slime_spell.png',
-        self,
-        10
-      ))
-
-      @skills_component.add_skill(SkillsBase::SlimeMud.new(self))
     end
 
     def action_start
       @in_action = true
-      @move_component.stop_on_nearest_tile
-      @move_random_component.timeout.stop
-      @skills_component.get_skill(SkillsBase::SlimeMud).use
+      stop_on_nearest_tile
+      @move_random.timeout.stop
+      @skills[Skills::SlimeMud].use_skill
       TimeoutsRegistrator.add_timeout(
         observer: self,
         method: :action_done,
@@ -51,12 +46,12 @@ module Monsters
 
     def action_done
       @in_action = false
-      @move_random_component.timeout.run unless @target
+      @move_random.timeout.run unless @target
     end
 
     def update
-      @move_component.update
-      @animations_component.update
+      super
+      move
 
       if @target && !@in_action
         action_start
@@ -64,7 +59,7 @@ module Monsters
     end
 
     def draw
-      @animations_component.draw
+      super
     end
   end
 end
