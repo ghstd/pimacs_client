@@ -21,7 +21,7 @@ module IndividualAbilities
         if @owner.is_moving?
           return if @direction_updated
           @direction_updated = true
-          if direction = @owner.get_direction
+          if direction = @owner.get_direction_x
             @direction = direction
           end
         else

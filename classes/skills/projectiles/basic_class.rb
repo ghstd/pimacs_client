@@ -1,6 +1,6 @@
 module Projectiles
   class BasicClass
-    attr_reader :x, :y, :size
+    attr_reader :x, :y, :size, :id
 
     def initialize(owner:, target: nil, start_x:, start_y:, target_x:, target_y:, speed:, size: 8)
       @world = World.instance
@@ -13,6 +13,8 @@ module Projectiles
       @target_y = target_y
       @speed = speed
       @size = size
+
+      @id = IdGenerator.create_id
 
       @animation = nil
 

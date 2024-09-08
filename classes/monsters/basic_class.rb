@@ -1,7 +1,7 @@
 module Monsters
   class BasicClass
     attr_accessor :x, :y, :width, :height, :speed, :current_image,
-      :target, :respawn_start, :respawn_finish, :xp, :spelling, :skills
+      :target, :respawn_start, :respawn_finish, :xp, :spelling, :skills, :id
     def initialize(x:, y:, speed: 1, respawn_start: nil, respawn_finish: nil)
       @tile_size = $TILE_SIZE
       @half_tile_size = @tile_size / 2
@@ -12,6 +12,8 @@ module Monsters
       @width = 32
       @height = 32
       @speed = speed
+
+      @id = IdGenerator.create_id
 
       @target = nil
 

@@ -2,6 +2,7 @@ require 'gosu'
 require 'json'
 require 'set'
 require 'singleton'
+require 'securerandom'
 
 $TILE_SIZE = 32
 
@@ -16,9 +17,12 @@ require_relative 'classes/monsters/index'
 require_relative 'modules/pathfinder'
 require_relative 'modules/pixels_converter'
 require_relative 'modules/timeouts_registrator'
+require_relative 'modules/id_generator'
 require_relative 'modules/dev_instruments'
 
-require_relative 'client'
+require 'websocket-client-simple'
+require 'json'
+require_relative 'websocket_client'
 
 class App < Gosu::Window
   WINDOW_WIDTH = 640
@@ -63,14 +67,9 @@ class App < Gosu::Window
     @first_frame = true
 
     # '========================='
-    # @client = WebSocketClient.new(self, "ws://localhost:3000/cable")
-    # @client.connect
+    WebSocketClient.instance.connect
 
-    @timestamp = 0
-  end
-
-  def wait(time)
-    sleep(time)
+    @timestamp = Time.now
   end
 
   def change_map(map_name)
@@ -111,14 +110,12 @@ class App < Gosu::Window
 
     if id == Gosu::MS_LEFT # MS_LEFT
 
-      # @player.move_component.start_moving(target_tile_x, target_tile_y)
       @player.start_moving(target_tile_x, target_tile_y)
 
       @pointer.init_click_animation(target_x, target_y)
 
       # '========================='
-      # data = {goal_x: target_tile_x, goal_y: target_tile_y}
-      # @client.ms_left(data)
+      WebSocketClient.instance.player_move(target_tile_x, target_tile_y)
 
     elsif id == Gosu::KB_Q # KB_Q
 
@@ -143,7 +140,8 @@ class App < Gosu::Window
   end
 
   def update
-    @timestamp = (Time.now.to_f * 1000).to_i
+    # @timestamp = (Time.now.to_f * 1000).to_i
+    # p Gosu.fps
 
     # Сброс флага после первого кадра
     @first_frame = false if @first_frame
@@ -155,7 +153,6 @@ class App < Gosu::Window
       if @player.player_in_area?(area)
 
         @player.target = nil
-        # @player.move_component.stop_moving
         @player.stop_moving
         @world.current_map.players.delete(@player)
         @player.x = area[:destination][:x] + rand(0..(area[:destination][:width] / TILE_SIZE - 1)) * TILE_SIZE
@@ -163,9 +160,6 @@ class App < Gosu::Window
         change_map(area[:to_map])
         @world.current_map.players.add(@player)
 
-        # @world.maps.each do |map_name, map|
-        #   p "#{map_name} - players.count: #{map.players.count}"
-        # end
         break
       end
     end
@@ -178,27 +172,16 @@ class App < Gosu::Window
     end
     TimeoutsRegistrator.update
     # p TimeoutsRegistrator.info
+  end
 
-    # '=============================='
-    # message = @client.read_message
-    # if message
-    #   client_x, client_y = @player.move_component.get_position
-    #   server_x, server_y = message['player_position']
-
-    #   client_timestamp = @timestamp
-    #   server_timestamp = message['timestamp']
-
-    #   # p '==============================='
-    #   # p "client_x: #{client_x}, client_y: #{client_y}"
-    #   # p "server_x: #{server_x}, server_y: #{server_y}"
-    #   p "diff_x: #{server_x - client_x}, diff_y: #{server_y - client_y}"
-    #   diff_timestamp = server_timestamp - client_timestamp
-    #   # p "diff_timestamp: #{server_timestamp - client_timestamp}"
-    #   # p '==============================='
-
-    #   @player.x = server_x
-    #   @player.y = server_y
-    # end
+  def draw_server_players
+    message = WebSocketClient.instance.read_message
+    @server_maps = message if message
+    @server_maps && @server_maps['4']['players'].each do |player|
+      @player.server_x = player['x']
+      @player.server_y = player['y']
+      Gosu.draw_rect(player['x'], player['y'], 32, 32, Gosu::Color::RED)
+    end
   end
 
   def draw
@@ -232,6 +215,9 @@ class App < Gosu::Window
         @world.current_map.animations.each do |animation|
           animation.draw
         end
+
+        # '========================='
+        draw_server_players
       end
     end
 

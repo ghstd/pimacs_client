@@ -28,6 +28,18 @@ module Skills
 
       return if @owner.x == x && @owner.y == y
 
+      WebSocketClient.instance.create_projectile(
+        owner_id: @owner.id,
+        target_id: (@owner.target.is_a? Array) ? nil : @owner.target.id,
+        start_x: @owner.x + @half_tile_size,
+        start_y: @owner.y + @half_tile_size,
+        target_x: x + @half_tile_size,
+        target_y: y + @half_tile_size,
+        speed: 5,
+        size: 8,
+        map_name: @world.current_map_name
+      )
+
       projectile = Projectiles::RedBall.new(
         owner: @owner,
         target: (@owner.target.is_a? Array) ? nil : @owner.target,

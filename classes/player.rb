@@ -1,6 +1,7 @@
 class Player
   attr_accessor :x, :y, :width, :height, :speed, :current_image,
-    :target, :xp, :mp, :spelling, :skills
+    :target, :xp, :mp, :spelling, :skills, :id, :timestamp,
+    :server_x, :server_y
 
   include IndividualAbilities::Move
 
@@ -24,9 +25,16 @@ class Player
     @xp = 100
     @mp = 100
 
-    init_move_module
+    @id = 1
 
-    # '=================================='
+    @timestamp = Time.now
+    @threshold = 5
+    @server_x = nil
+    @server_y = nil
+    @normal_speed = @speed
+    @slow_coefficient = 0.2
+
+    init_move_module
 
     @animations = []
 
@@ -104,8 +112,85 @@ class Player
     Gosu.draw_rect(60, 60, 20, @xp * 2, Gosu::Color.new(255, 19, 103, 138), 3)
   end
 
+  def adjust_client_speed(client, server, speed, direction)
+    difference = client - server
+
+    if difference.abs > @threshold
+      if direction == :right
+        if difference > 0
+          return [speed - @slow_coefficient, 1].max
+        else
+          return [speed + @slow_coefficient, @normal_speed].min
+        end
+      end
+
+      if direction == :left
+        if difference > 0
+          return [speed + @slow_coefficient, @normal_speed].min
+        else
+          return [speed - @slow_coefficient, 1].max
+        end
+      end
+
+      if direction == :down
+        if difference > 0
+          return [speed - @slow_coefficient, 1].max
+        else
+          return [speed + @slow_coefficient, @normal_speed].min
+        end
+      end
+
+      if direction == :top
+        if difference > 0
+          return [speed + @slow_coefficient, @normal_speed].min
+        else
+          return [speed - @slow_coefficient, 1].max
+        end
+      end
+
+      return @normal_speed
+    else
+      return @normal_speed
+    end
+
+
+    # if difference > 0
+    #   return [speed - 1, 1].max
+    # end
+    # if difference < 0
+    #   return speed + 1
+    # end
+    # return speed
+  end
+
+  def get_direction(client_x, client_y, target_x, target_y)
+    if (client_x - target_x).abs > (client_y - target_y).abs
+      return :x
+    else
+      return :y
+    end
+  end
+
+  def synchronize_speed
+    if @server_x && @server_y && @target_of_movement_x && @target_of_movement_y
+      direction = get_direction(@x, @y, @target_of_movement_x, @target_of_movement_y)
+      if direction == :x
+        direction_x = get_direction_x
+        speed = adjust_client_speed(@x, @server_x, @speed, direction_x)
+        @speed = speed
+      end
+      if direction == :y
+        direction_y = get_direction_y
+        speed = adjust_client_speed(@y, @server_y, @speed, direction_y)
+        @speed = speed
+      end
+    end
+  end
+
   def update
+    synchronize_speed
     move
+
     @animations.each do |animation|
       animation.update if animation.respond_to?(:update)
     end

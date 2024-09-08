@@ -38,7 +38,7 @@ module IndividualAbilities
       [@x, @y]
     end
 
-    def get_direction
+    def get_direction_x
       target_x, target_y = @final_goal
       x, y = get_position
 
@@ -46,6 +46,19 @@ module IndividualAbilities
         return :right
       elsif x > target_x
         return :left
+      else
+        nil
+      end
+    end
+
+    def get_direction_y
+      target_x, target_y = @final_goal
+      x, y = get_position
+
+      if y < target_y
+        return :down
+      elsif y > target_y
+        return :top
       else
         nil
       end
