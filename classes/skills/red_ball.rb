@@ -28,6 +28,8 @@ module Skills
 
       return if @owner.x == x && @owner.y == y
 
+      id = IdGenerator.create_id
+
       WebSocketClient.instance.create_projectile(
         owner_id: @owner.id,
         target_id: (@owner.target.is_a? Array) ? nil : @owner.target.id,
@@ -37,6 +39,7 @@ module Skills
         target_y: y + @half_tile_size,
         speed: 5,
         size: 8,
+        id: id,
         map_name: @world.current_map_name
       )
 
@@ -49,6 +52,7 @@ module Skills
         target_y: y + @half_tile_size,
         speed: 5,
         size: 8,
+        id: id,
         projectile_animation: ProjectileAnimations::RedBall,
         on_target_animation: OnTargetAnimations::RedBall
       )

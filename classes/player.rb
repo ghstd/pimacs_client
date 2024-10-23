@@ -152,15 +152,6 @@ class Player
     else
       return @normal_speed
     end
-
-
-    # if difference > 0
-    #   return [speed - 1, 1].max
-    # end
-    # if difference < 0
-    #   return speed + 1
-    # end
-    # return speed
   end
 
   def get_direction(client_x, client_y, target_x, target_y)

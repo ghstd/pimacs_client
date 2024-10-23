@@ -8,7 +8,7 @@ module IndividualAbilities
       @timeout = TimeoutsRegistrator.add_timeout(
         observer: self,
         method: :characters_in_radius,
-        delay: 150
+        delay: 180
       )
     end
 

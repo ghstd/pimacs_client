@@ -63,7 +63,7 @@ class WebSocketClient
     @ws.send(data)
   end
 
-  def create_projectile(owner_id:, target_id: nil, start_x:, start_y:, target_x:, target_y:, speed:, size:, map_name:)
+  def create_projectile(owner_id:, target_id: nil, start_x:, start_y:, target_x:, target_y:, speed:, size:, id:, map_name:)
     message = {
       owner_id: owner_id,
       target_id: target_id,
@@ -73,6 +73,7 @@ class WebSocketClient
       target_y: target_y,
       speed: speed,
       size: size,
+      id: id,
       map_name: map_name
     }
 
@@ -80,6 +81,21 @@ class WebSocketClient
       command: "message",
       identifier: @identifier,
       data: {action: 'create_projectile', message: message}.to_json
+    }.to_json
+    @ws.send(data)
+  end
+
+  def player_change_map(player_id:, player_x:, player_y:, old_map_name:, new_map_name:)
+    data = {
+      command: "message",
+      identifier: @identifier,
+      data: {action: 'player_change_map', message: {
+        player_id: player_id,
+        player_x: player_x,
+        player_y: player_y,
+        old_map_name: old_map_name,
+        new_map_name: new_map_name
+      }}.to_json
     }.to_json
     @ws.send(data)
   end

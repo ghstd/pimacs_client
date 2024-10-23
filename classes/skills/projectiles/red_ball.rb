@@ -9,6 +9,7 @@ module Projectiles
       target_y:,
       speed:,
       size: 8,
+      id: nil,
       projectile_animation:,
       on_target_animation:
     )
@@ -21,7 +22,8 @@ module Projectiles
         target_x: target_x,
         target_y: target_y,
         speed: speed,
-        size: size
+        size: size,
+        id: id
       )
 
       @projectile_animation = projectile_animation

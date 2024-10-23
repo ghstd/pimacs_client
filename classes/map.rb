@@ -21,7 +21,8 @@ class Map
     init_layers
     init_tiles_info
     init_transition_areas
-    TimeoutsRegistrator.add_timeout(observer: self, method: :init_monsters, delay: 50, type: :once)
+
+    # TimeoutsRegistrator.add_timeout(observer: self, method: :init_monsters, delay: 60, type: :once)
   end
 
   def init_layers
@@ -78,29 +79,41 @@ class Map
     end
   end
 
-  def init_monsters
-    @object_layers.each do |layer|
-      next unless layer['name'] == 'Monsters'
-      layer['objects'].each do |object|
-        quantity = object['properties'].find { |prop| prop['name'] == 'quantity' }['value']
-        quantity.times do
-          x1 = object['x']
-          y1 = object['y']
-          x2 = object['x'] + object['width'] - TILE_SIZE
-          y2 = object['y'] + object['height'] - TILE_SIZE
-          start = PixelsConverter.pixels_to_tile_coord(x1, y1)
-          finish = PixelsConverter.pixels_to_tile_coord(x2, y2)
-          x, y = PixelsConverter.tile_coord_to_pixels(rand(start[0]..finish[0]), rand(start[1]..finish[1]))
-          monster = Object.const_get("Monsters::#{object['name']}").new(
-            x: x,
-            y: y,
-            respawn_start: start,
-            respawn_finish: finish
-          )
-          @monsters << monster
-        end
-      end
-    end
+  # def init_monsters
+  #   @object_layers.each do |layer|
+  #     next unless layer['name'] == 'Monsters'
+  #     layer['objects'].each do |object|
+  #       quantity = object['properties'].find { |prop| prop['name'] == 'quantity' }['value']
+  #       quantity.times do
+  #         x1 = object['x']
+  #         y1 = object['y']
+  #         x2 = object['x'] + object['width'] - TILE_SIZE
+  #         y2 = object['y'] + object['height'] - TILE_SIZE
+  #         start = PixelsConverter.pixels_to_tile_coord(x1, y1)
+  #         finish = PixelsConverter.pixels_to_tile_coord(x2, y2)
+  #         x, y = PixelsConverter.tile_coord_to_pixels(rand(start[0]..finish[0]), rand(start[1]..finish[1]))
+  #         monster = Object.const_get("Monsters::#{object['name']}").new(
+  #           x: x,
+  #           y: y,
+  #           respawn_start: start,
+  #           respawn_finish: finish
+  #         )
+  #         @monsters << monster
+  #       end
+  #     end
+  #   end
+  # end
+
+  def get_players_hash
+    @players.map { |obj| [obj.id, obj] }.to_h
+  end
+
+  def get_monsters_hash
+    @monsters.map { |obj| [obj.id, obj] }.to_h
+  end
+
+  def get_projectiles_hash
+    @projectiles.map { |obj| [obj.id, obj] }.to_h
   end
 
 end

@@ -1,9 +1,9 @@
 module IndividualAbilities
   module Move
-    attr_accessor
+    attr_accessor :moving, :new_path, :final_goal, :target_of_movement_x, :target_of_movement_y
     def init_move_module
       @path = []
-      @final_goal = []
+      @final_goal = nil
       @target_of_movement_x = nil
       @target_of_movement_y = nil
       @moving = false
@@ -39,6 +39,7 @@ module IndividualAbilities
     end
 
     def get_direction_x
+      return if @final_goal.nil?
       target_x, target_y = @final_goal
       x, y = get_position
 

@@ -25,8 +25,10 @@ require 'json'
 require_relative 'websocket_client'
 
 class App < Gosu::Window
-  WINDOW_WIDTH = 640
-  WINDOW_HEIGHT = 480
+  # WINDOW_WIDTH = 640
+  # WINDOW_HEIGHT = 480
+  WINDOW_WIDTH = 760
+  WINDOW_HEIGHT = 540
   HALF_WINDOW_WIDTH = WINDOW_WIDTH / 2
   HALF_WINDOW_HEIGHT = WINDOW_HEIGHT / 2
   TILE_SIZE = $TILE_SIZE
@@ -152,6 +154,7 @@ class App < Gosu::Window
     @world.current_map.transition_areas.each do |area|
       if @player.player_in_area?(area)
 
+        old_map_name = @world.current_map_name
         @player.target = nil
         @player.stop_moving
         @world.current_map.players.delete(@player)
@@ -159,7 +162,15 @@ class App < Gosu::Window
         @player.y = area[:destination][:y] + rand(0..(area[:destination][:height] / TILE_SIZE - 1)) * TILE_SIZE
         change_map(area[:to_map])
         @world.current_map.players.add(@player)
+        new_map_name = @world.current_map_name
 
+        WebSocketClient.instance.player_change_map(
+          player_id: @player.id,
+          player_x: @player.x,
+          player_y: @player.y,
+          old_map_name: old_map_name,
+          new_map_name: new_map_name
+        )
         break
       end
     end
@@ -174,13 +185,81 @@ class App < Gosu::Window
     # p TimeoutsRegistrator.info
   end
 
-  def draw_server_players
-    message = WebSocketClient.instance.read_message
-    @server_maps = message if message
-    @server_maps && @server_maps['4']['players'].each do |player|
-      @player.server_x = player['x']
-      @player.server_y = player['y']
-      Gosu.draw_rect(player['x'], player['y'], 32, 32, Gosu::Color::RED)
+  def update_maps_data
+    # message = WebSocketClient.instance.read_message
+    # @data = message if message
+
+    data = WebSocketClient.instance.read_message
+    return unless data
+
+    data && data.each do |map_name, new_state|
+    # @data && @data.each do |map_name, new_state|
+      current_players = @world.maps[map_name].get_players_hash
+      current_projectiles = @world.maps[map_name].get_projectiles_hash
+      current_monsters = @world.maps[map_name].get_monsters_hash
+
+      new_state['players'].each do |player|
+        if current_player = current_players[player['id']]
+          current_player.server_x = player['x']
+          current_player.server_y = player['y']
+        end
+        # Gosu.draw_rect(player['x'], player['y'], 32, 32, Gosu::Color::GREEN) # to delete
+      end
+
+      new_state['projectiles'].each do |projectile|
+        if current_projectile = current_projectiles[projectile['id']]
+          current_projectile.x = projectile['x']
+          current_projectile.y = projectile['y']
+        else
+          new_projectile = Object.const_get("Projectiles::#{projectile['type']}").new(
+            owner: @world.find_creature_by_id(projectile['owner_id']),
+            target: @world.find_creature_by_id(projectile['target_id']),
+            start_x: projectile['x'],
+            start_y: projectile['y'],
+            target_x: projectile['target_x'],
+            target_y: projectile['target_y'],
+            speed: projectile['speed'],
+            size: projectile['size'],
+            id: projectile['id'],
+            projectile_animation: Object.const_get("ProjectileAnimations::#{projectile['type']}"),
+            on_target_animation: OnTargetAnimations::RedBall
+          )
+          @world.maps[map_name].projectiles << new_projectile
+        end
+        # Gosu.draw_rect(projectile['x'] - 4, projectile['y'] - 4, 8, 8, Gosu::Color::BLUE) # to delete
+      end
+
+      new_state['monsters'].each do |monster|
+        if current_monster = current_monsters[monster['id']]
+          current_monster.server_x = monster['x']
+          current_monster.server_y = monster['y']
+          current_monster.spelling = monster['spelling']
+          current_monster.in_action = monster['in_action']
+          current_monster.moving = monster['moving']
+          current_monster.new_path = monster['new_path']
+          current_monster.final_goal = monster['final_goal']
+          current_monster.target_of_movement_x = monster['target_of_movement_x']
+          current_monster.target_of_movement_y = monster['target_of_movement_y']
+        else
+          new_monster = Object.const_get(monster['monster_type']).new(
+            x: monster['x'],
+            y: monster['y'],
+            id: monster['id']
+          )
+          new_monster.server_x = monster['x']
+          new_monster.server_y = monster['y']
+          new_monster.spelling = monster['spelling']
+          new_monster.moving = monster['moving']
+          new_monster.new_path = monster['new_path']
+          new_monster.final_goal = monster['final_goal']
+          new_monster.target_of_movement_x = monster['target_of_movement_x']
+          new_monster.target_of_movement_y = monster['target_of_movement_y']
+
+          @world.maps[map_name].monsters << new_monster
+        end
+        # Gosu.draw_rect(monster['x'], monster['y'], 32, 32, Gosu::Color::RED) # to delete
+      end
+
     end
   end
 
@@ -201,7 +280,7 @@ class App < Gosu::Window
           end
         end
 
-        DevInstruments.draw_grid(@world.current_map.width, @world.current_map.height, TILE_SIZE)
+        # DevInstruments.draw_grid(@world.current_map.width, @world.current_map.height, TILE_SIZE)
         @pointer.draw_pointer_rect(camera_x, camera_y)
         @pointer.draw_pointer_click
 
@@ -217,7 +296,8 @@ class App < Gosu::Window
         end
 
         # '========================='
-        draw_server_players
+        update_maps_data
+        # '========================='
       end
     end
 

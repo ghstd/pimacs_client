@@ -7,7 +7,7 @@ module OnTargetAnimations
       @timeout = TimeoutsRegistrator.add_timeout(
         observer: self,
         method: :delete_animation,
-        delay: 15,
+        delay: 18,
         type: :once
       )
       @switcher = true

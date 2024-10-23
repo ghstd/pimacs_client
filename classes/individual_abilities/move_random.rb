@@ -7,7 +7,7 @@ module IndividualAbilities
       @timeout = TimeoutsRegistrator.add_timeout(
         observer: self,
         method: :change_direction_and_move,
-        delay: 350
+        delay: 360
       )
 
       change_direction_and_move

@@ -6,7 +6,7 @@ module ProjectileAnimations
       @timeout = TimeoutsRegistrator.add_timeout(
         observer: self,
         method: :change_size,
-        delay: 5
+        delay: 6
       )
       @switcher = true
     end
